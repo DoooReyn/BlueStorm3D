@@ -8,7 +8,7 @@
 
 import { LogLevel } from "./log_level";
 
-export interface LogDelegate {
+export interface I_LogDelegate {
   handle(level: LogLevel, params: any): void;
   close(): void;
 }

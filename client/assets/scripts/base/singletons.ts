@@ -1,4 +1,5 @@
 import { Log } from "./log/log";
+import { DataStore } from "./store/data_store";
 
 /**
  * Url      : db://assets/scripts/base/singletons.ts
@@ -8,13 +9,23 @@ import { Log } from "./log/log";
  */
 
 export class Singletons {
-  // ----------------- 日志 -----------------
-  private static _log: Log = null;
-  public static get log() {
-    return (this._log = this._log || new Log());
-  }
-  public static destoryAll() {
-    this._log.close();
-    delete this._log;
-  }
+    // ---------------------------------- 日志 ----------------------------------
+    private static _log: Log = null;
+    public static get log() {
+        return (this._log = this._log || new Log());
+    }
+
+    // ---------------------------------- 存储 ----------------------------------
+    private static _store: DataStore = null;
+    public static get store() {
+        return (this._store = this._store || new DataStore());
+    }
+
+    // ---------------------------------- 销毁 ----------------------------------
+    public static destoryAll() {
+        this._log.close();
+        delete this._log;
+    }
 }
+
+(window as any).Singletons = Singletons;

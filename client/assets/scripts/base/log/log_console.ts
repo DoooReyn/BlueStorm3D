@@ -1,7 +1,7 @@
-import { LogDelegate } from "./log_delegate";
+import { I_LogDelegate } from "./log_delegate";
 import { LogLevel } from "./log_level";
 
-export class LogConsole implements LogDelegate {
+export class LogConsole implements I_LogDelegate {
   private _delegates: any = {};
 
   public constructor() {

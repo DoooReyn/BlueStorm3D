@@ -11,30 +11,31 @@ const { ccclass, property } = _decorator;
  */
 @ccclass("AppScene")
 export class AppScene extends Component {
-  /************************************************************
-   * 基础事件
-   ************************************************************/
+    /************************************************************
+     * 基础事件
+     ************************************************************/
 
-  onLoad() {
-    Singletons.log.d(`日志开关: ${Singletons.log.on}`);
-    Singletons.log.d(`日志等级: ${Singletons.log.level}`);
-  }
+    onLoad() {
+        Singletons.log.d(`日志开关: ${Singletons.log.on}`);
+        Singletons.log.d(`日志等级: ${Singletons.log.level}`);
+        Singletons.store.init("BlueStorm3");
+    }
 
-  onDestroy() {}
+    onDestroy() {}
 
-  onEnable() {
-    Singletons.log.i(`${this.node.name} onEnable`);
-  }
+    onEnable() {
+        Singletons.log.i(`${this.node.name} onEnable`);
+    }
 
-  onDisable() {
-    Singletons.log.e(`${this.node.name} onDisable`);
-  }
+    onDisable() {
+        Singletons.log.e(`${this.node.name} onDisable`);
+    }
 
-  start() {
-    Singletons.log.w(`${this.node.name} start`);
-  }
+    start() {
+        Singletons.log.w(`${this.node.name} start`);
+    }
 
-  // update(dt: number) {}
+    // update(dt: number) {}
 
-  // lateUpdate(dt: number) {}
+    // lateUpdate(dt: number) {}
 }

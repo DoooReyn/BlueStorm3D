@@ -1,4 +1,4 @@
-import { LogDelegate } from "./log_delegate";
+import { I_LogDelegate } from "./log_delegate";
 import { LogConsole } from "./log_console";
 import { LogFile } from "./log_file";
 import { LogLevel } from "./log_level";
@@ -17,7 +17,7 @@ function none(...data: any[]) {}
 export class Log {
   private _on: boolean = true;
   private _level: LogLevel = LogLevel.DEBUG;
-  private _delegates: LogDelegate[] = [];
+  private _delegates: I_LogDelegate[] = [];
   public d: T_ConsoleFunction = this._handle.bind(this, LogLevel.DEBUG);
   public i: T_ConsoleFunction = this._handle.bind(this, LogLevel.INFO);
   public w: T_ConsoleFunction = this._handle.bind(this, LogLevel.WARN);

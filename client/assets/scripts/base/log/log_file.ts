@@ -1,5 +1,5 @@
 import { native, sys } from "cc";
-import { LogDelegate } from "./log_delegate";
+import { I_LogDelegate } from "./log_delegate";
 import { LogLevel } from "./log_level";
 import { LogConsole } from "./log_console";
 
@@ -10,7 +10,7 @@ import { LogConsole } from "./log_console";
  * Date     : Tue Nov 29 2022 20:15:59 GMT+0800 (中国标准时间)
  * Desc     : 文件日志
  */
-export class LogFile implements LogDelegate {
+export class LogFile implements I_LogDelegate {
   private _fileObj: any = null;
   private _fileAt: string = "";
   private _console: LogConsole = null;
