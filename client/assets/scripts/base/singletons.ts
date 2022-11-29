@@ -1,11 +1,11 @@
+import { Log } from "./log/log";
+
 /**
  * Url      : db://assets/scripts/base/singletons.ts
  * Author   : reyn
  * Date     : Tue Nov 29 2022 21:28:08 GMT+0800 (中国标准时间)
  * Desc     : 单例类挂载节点
  */
-
-import { Log } from "./log/log";
 
 export class Singletons {
   // ----------------- 日志 -----------------

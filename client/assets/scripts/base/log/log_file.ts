@@ -24,7 +24,7 @@ export class LogFile implements LogDelegate {
     return `${root}/${date.getTime().toLocaleString()}.log`;
   }
 
-  handle(level: LogLevel, params: any[]): void {
+  public handle(level: LogLevel, params: any[]): void {
     const log = params.map((c) => c.toString()).join("\r\n");
     if (sys.isNative) {
       if (!this._fileObj) {
@@ -39,7 +39,7 @@ export class LogFile implements LogDelegate {
     }
   }
 
-  close(): void {
+  public close(): void {
     if (this._fileObj) {
       this._fileObj.close();
       this._fileObj = null;
