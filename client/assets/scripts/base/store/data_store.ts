@@ -24,6 +24,7 @@ export class VolumeData extends DataPiece<number> {
  * Author   : reyn
  * Date     : Tue Nov 29 2022 21:52:20 GMT+0800 (中国标准时间)
  * Desc     : 本地数据存储项
+ *   - 可以根据 DataPiece 创建自定义的数据类型
  */
 export class DataStore {
     private _key: string = null;
