@@ -10,23 +10,23 @@ const { ccclass, property } = _decorator;
  */
 @ccclass('<%CamelCaseClassName%>')
 export class <%CamelCaseClassName%> extends Component {
-  /************************************************************
-   * 基础事件
-   ************************************************************/
+    /************************************************************
+    * 基础事件
+    ************************************************************/
 
-  onLoad() {}
+    onLoad() {}
 
-  onDestroy() {}
+    onDestroy() {}
 
-  onEnable() {}
+    onEnable() {}
 
-  onDisable() {}
+    onDisable() {}
 
-  start() {}
+    start() {}
 
-  // update(dt: number) {}
+    // update(dt: number) {}
 
-  // lateUpdate(dt: number) {}
+    // lateUpdate(dt: number) {}
 }
 
 /**
