@@ -37,6 +37,7 @@ export abstract class DataPiece<T extends T_DataPiece> {
 
     /**
      * 序列化——保存数据
+     * 可以在此加密数据
      */
     public serialize() {
         sys.localStorage.setItem(this._key, asJsonString(this._data));
@@ -44,6 +45,7 @@ export abstract class DataPiece<T extends T_DataPiece> {
 
     /**
      * 反序列化——读取数据
+     * 可以在此解密数据
      * @returns
      */
     protected unserialize(): T {
