@@ -1,4 +1,4 @@
-import { _decorator, Component } from "cc";
+import { _decorator, Component, NodeEventType } from "cc";
 import { Singletons } from "../../base/singletons";
 import RedDot from "./red_dot";
 import RedDotNumber from "./red_dot_number";
@@ -35,7 +35,14 @@ export class RedScene extends Component {
 
     onDestroy() {}
 
-    onEnable() {}
+    onEnable() {
+        this.mailSystem.node.on(NodeEventType.TOUCH_END, () => {
+            Singletons.red.root.seek("Mail/System").count--;
+        });
+        this.mailPrivate.node.on(NodeEventType.TOUCH_END, () => {
+            Singletons.red.root.seek("Mail/Private").count--;
+        });
+    }
 
     onDisable() {}
 

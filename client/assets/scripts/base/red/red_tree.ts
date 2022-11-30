@@ -42,9 +42,7 @@ export class RedTree {
                 this._count = Math.max(0, c | 0);
             }
         } else {
-            if (this._style === E_RedStyle.Number) {
-                this._count = this._children.reduce((s, v) => s + v.count, 0);
-            }
+            this._count = this._children.reduce((s, v) => s + v.count, 0);
         }
         if (this.parent) {
             this.parent.count = 0;
