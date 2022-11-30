@@ -1,5 +1,6 @@
 import { EventBus } from "./event/event_bus";
 import { Log } from "./log/log";
+import { RedMgr } from "./red/red_mgr";
 import { DataStore } from "./store/data_store";
 
 /**
@@ -26,6 +27,12 @@ export class Singletons {
     private static _event: EventBus = null;
     public static get event() {
         return (this._event = this._event || new EventBus());
+    }
+
+    // ---------------------------------- 红点 ----------------------------------
+    private static _red: RedMgr = null;
+    public static get red() {
+        return (this._red = this._red || new RedMgr());
     }
 
     // ---------------------------------- 销毁 ----------------------------------
