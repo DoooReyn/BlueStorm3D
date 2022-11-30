@@ -1,3 +1,4 @@
+import { EventBus } from "./event/event_bus";
 import { Log } from "./log/log";
 import { DataStore } from "./store/data_store";
 
@@ -19,6 +20,12 @@ export class Singletons {
     private static _store: DataStore = null;
     public static get store() {
         return (this._store = this._store || new DataStore());
+    }
+
+    // ---------------------------------- 事件 ----------------------------------
+    private static _event: EventBus = null;
+    public static get event() {
+        return (this._event = this._event || new EventBus());
     }
 
     // ---------------------------------- 销毁 ----------------------------------

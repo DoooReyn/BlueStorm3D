@@ -1,6 +1,6 @@
-import { _decorator, Component, Node } from "cc";
+import { _decorator, Component } from "cc";
 import { Singletons } from "../../base/singletons";
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 /**
  * Url      : db://assets/scripts/scene/app/app_scene.ts

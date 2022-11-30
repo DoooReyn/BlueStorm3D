@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, EventTouch } from "cc";
+import { _decorator, Component, EventTouch } from "cc";
 import { MyEventTouch } from "./my_event_touch";
 
 const { ccclass, property } = _decorator;
