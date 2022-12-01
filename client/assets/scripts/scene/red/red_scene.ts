@@ -1,7 +1,7 @@
-import { _decorator, Component, NodeEventType } from "cc";
+import { _decorator, Component, NodeEventType, EventTouch } from "cc";
+import RedDotNumber from "../../base/red/red_dot_number";
+import RedDotPure from "../../base/red/red_dot_pure";
 import { Singletons } from "../../base/singletons";
-import RedDot from "./red_dot";
-import RedDotNumber from "./red_dot_number";
 const { ccclass, property } = _decorator;
 
 /**
@@ -13,8 +13,8 @@ const { ccclass, property } = _decorator;
  */
 @ccclass("RedScene")
 export class RedScene extends Component {
-    @property(RedDot)
-    menu: RedDot = null;
+    @property(RedDotPure)
+    menu: RedDotPure = null;
 
     @property(RedDotNumber)
     mail: RedDotNumber = null;
@@ -30,30 +30,37 @@ export class RedScene extends Component {
      ************************************************************/
 
     onLoad() {
-        Singletons.red.init();
+        Singletons.red.initLeafData();
     }
 
     onDestroy() {}
 
     onEnable() {
         this.mailSystem.node.on(NodeEventType.TOUCH_END, () => {
-            Singletons.red.root.seek("Mail/System").count--;
+            Singletons.red.mail_system.addNumber(-1);
         });
         this.mailPrivate.node.on(NodeEventType.TOUCH_END, () => {
-            Singletons.red.root.seek("Mail/Private").count--;
+            Singletons.red.mail_private.addNumber(-1);
         });
     }
 
     onDisable() {}
 
     start() {
-        Singletons.red.root.connect(this.menu);
-        Singletons.red.root.seek("Mail").connect(this.mail);
-        Singletons.red.root.seek("Mail/System").connect(this.mailSystem);
-        Singletons.red.root.seek("Mail/Private").connect(this.mailPrivate);
+        Singletons.red.root_menu.connect(this.menu);
+        Singletons.red.menu_mail.connect(this.mail);
+        Singletons.red.mail_system.connect(this.mailSystem);
+        Singletons.red.mail_private.connect(this.mailPrivate);
     }
 
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
+    onBtnClicked(e: EventTouch, type: string) {
+        switch (type) {
+            case "AddSystem":
+                Singletons.red.mail_system.addNumber(1);
+                break;
+            case "AddPrivate":
+                Singletons.red.mail_private.addNumber(1);
+                break;
+        }
+    }
 }

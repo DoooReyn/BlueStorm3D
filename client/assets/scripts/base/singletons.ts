@@ -1,6 +1,6 @@
 import { EventBus } from "./event/event_bus";
 import { Log } from "./log/log";
-import { RedMgr } from "./red/red_mgr";
+import { RedDotMgr } from "./red/red_dot_mgr";
 import { DataStore } from "./store/data_store";
 
 /**
@@ -9,7 +9,6 @@ import { DataStore } from "./store/data_store";
  * Date     : Tue Nov 29 2022 21:28:08 GMT+0800 (中国标准时间)
  * Desc     : 单例类挂载节点
  */
-
 export class Singletons {
     // ---------------------------------- 日志 ----------------------------------
     private static _log: Log = null;
@@ -30,9 +29,9 @@ export class Singletons {
     }
 
     // ---------------------------------- 红点 ----------------------------------
-    private static _red: RedMgr = null;
+    private static _red: RedDotMgr = null;
     public static get red() {
-        return (this._red = this._red || new RedMgr());
+        return (this._red = this._red || new RedDotMgr());
     }
 
     // ---------------------------------- 销毁 ----------------------------------
