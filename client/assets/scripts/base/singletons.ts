@@ -1,7 +1,9 @@
+import { director, Node } from "cc";
 import { EventBus } from "./event/event_bus";
 import { Log } from "./log/log";
 import { RedDotMgr } from "./red/red_dot_mgr";
 import { DataStore } from "./store/data_store";
+import TimerHook from "./time/timer_hook";
 
 /**
  * Url      : db://assets/scripts/base/singletons.ts
@@ -34,10 +36,30 @@ export class Singletons {
         return (this._red = this._red || new RedDotMgr());
     }
 
+    // ------------------------------ 定时器HOOK组件 -----------------------------
+    private static _timerHook: TimerHook = null;
+    public static get timerHook() {
+        if (!this._timerHook) {
+            let timerHookNode = new Node();
+            let timerHookCom = timerHookNode.addComponent(TimerHook);
+            director.addPersistRootNode(timerHookNode);
+            this._timerHook = timerHookCom;
+        }
+        return this._timerHook;
+    }
+
     // ---------------------------------- 销毁 ----------------------------------
     public static destoryAll() {
-        this._log.close();
-        delete this._log;
+        if (this._log) {
+            this._log.close();
+            delete this._log;
+        }
+
+        if (this._timerHook) {
+            this._timerHook.unscheduleAllCallbacks();
+            director.removePersistRootNode(this._timerHook.node);
+            delete this._timerHook;
+        }
     }
 }
 
