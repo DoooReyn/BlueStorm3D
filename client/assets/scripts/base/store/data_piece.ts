@@ -32,7 +32,6 @@ export abstract class DataPiece<T extends T_DataPiece> {
         this._key = key;
         let data = this.unserialize();
         this.data = isNull(data) ? default_value : data;
-        console.info(key, this._data);
     }
 
     /**

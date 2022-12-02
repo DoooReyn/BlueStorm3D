@@ -1,5 +1,6 @@
 import { director, Node } from "cc";
 import { EventBus } from "./event/event_bus";
+import { i18nMgr } from "./i18n/i18n_mgr";
 import { Log } from "./log/log";
 import { RedDotMgr } from "./red/red_dot_mgr";
 import { DataStore } from "./store/data_store";
@@ -48,6 +49,12 @@ export class Singletons {
         return this._timerHook;
     }
 
+    // ---------------------------------- 语言 ----------------------------------
+    private static _i18n: i18nMgr = null;
+    public static get i18n() {
+        return (this._i18n = this._i18n || new i18nMgr());
+    }
+
     // ---------------------------------- 销毁 ----------------------------------
     public static destoryAll() {
         if (this._log) {
@@ -59,6 +66,11 @@ export class Singletons {
             this._timerHook.unscheduleAllCallbacks();
             director.removePersistRootNode(this._timerHook.node);
             delete this._timerHook;
+        }
+
+        if (this._i18n) {
+            this._i18n.disconnectAll();
+            delete this._i18n;
         }
     }
 }
