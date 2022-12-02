@@ -9,7 +9,10 @@ import {
 } from "./i18n_map";
 
 /**
- * 语言管理器
+ * Url      : db://assets/scripts/base/i18n/i18n_mgr.ts
+ * Author   : reyn
+ * Date     : Fri Dec 02 2022 15:06:55 GMT+0800 (中国标准时间)
+ * Desc     : 多语言管理器
  */
 export class i18nMgr {
     /**

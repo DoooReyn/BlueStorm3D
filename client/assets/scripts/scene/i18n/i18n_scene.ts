@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, Label, EventTouch } from "cc";
+import { _decorator, Component, EventTouch } from "cc";
 import { i18nLabel } from "../../base/i18n/i18n_label";
 import { E_SupportLanguages } from "../../base/i18n/i18n_map";
 import { i18nSprite } from "../../base/i18n/i18n_sprite";
