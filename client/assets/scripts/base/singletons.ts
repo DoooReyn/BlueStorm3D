@@ -3,8 +3,9 @@ import { EventBus } from "./event/event_bus";
 import { i18nMgr } from "./i18n/i18n_mgr";
 import { Log } from "./log/log";
 import { RedDotMgr } from "./red/red_dot_mgr";
+import { DynamicResMgr } from "./res/dynamic_res_mgr";
 import { DataStore } from "./store/data_store";
-import TimerHook, { TimerMgr } from "./time/timer_hook";
+import { TimerMgr } from "./time/timer_mgr";
 
 /**
  * Url      : db://assets/scripts/base/singletons.ts
@@ -37,7 +38,7 @@ export class Singletons {
         return (this._red = RedDotMgr.getInstance());
     }
 
-    // ------------------------------ 定时器HOOK组件 -----------------------------
+    // ------------------------------- 定时器HOOK组件 ------------------------------
     private static _timer: TimerMgr = null;
     public static get timer() {
         return (this._timer = TimerMgr.getInstance());
@@ -47,6 +48,12 @@ export class Singletons {
     private static _i18n: i18nMgr = null;
     public static get i18n() {
         return (this._i18n = i18nMgr.getInstance("BlueStorm3#language"));
+    }
+
+    // ------------------------------- 动态资源管理器 --------------------------------
+    private static _drm: DynamicResMgr = null;
+    public static get drm() {
+        return (this._drm = DynamicResMgr.getInstance());
     }
 
     // ---------------------------------- 销毁 ----------------------------------
@@ -79,6 +86,11 @@ export class Singletons {
         if (this._i18n) {
             this._i18n.destroy();
             delete this._i18n;
+        }
+
+        if (this._drm) {
+            this._drm.destroy();
+            delete this._drm;
         }
     }
 }
