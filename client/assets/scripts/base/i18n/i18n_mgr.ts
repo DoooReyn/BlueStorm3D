@@ -1,13 +1,6 @@
 import { sys } from "cc";
 import SingletonBase from "../singleton_base";
-import {
-    E_i18nType,
-    E_SupportLanguages,
-    getI18nItem,
-    I_i18nContent,
-    I_i18nListener,
-    T_i18nKey,
-} from "./i18n_map";
+import { E_i18nType, E_SupportLanguages, getI18nItem, I_i18nContent, I_i18nListener, T_i18nKey } from "./i18n_map";
 
 /**
  * Url      : db://assets/scripts/base/i18n/i18n_mgr.ts
@@ -162,6 +155,7 @@ export class i18nMgr extends SingletonBase {
         const ret: I_i18nContent = { text: text };
         if (item.type === E_i18nType.Other) {
             ret.bundle = item.bundle || "resources";
+            item.atlas && (ret.atlas = item.atlas);
         }
         return ret;
     }

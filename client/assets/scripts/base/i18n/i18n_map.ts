@@ -32,6 +32,7 @@ export enum E_i18nType {
  * - ZH: 中 文本/资源
  * - EN: 英 文本/资源
  * - type: 语言项类型
+ * - atlas: 图像资源隶属的图集
  * - bundle: 资源隶属的包（建议将相关资源放在一个独立的包下）
  */
 export interface I_i18nItem {
@@ -39,6 +40,7 @@ export interface I_i18nItem {
     EN: string;
     type?: E_i18nType;
     bundle?: string;
+    atlas?: string;
 }
 
 /**
@@ -77,10 +79,12 @@ export type T_i18nKey = keyof typeof i18nKeyMap;
  * 语言内容
  * - text: 文本/资源
  * - bundle: 资源隶属的包
+ * - atlas: 图像资源隶属的图集
  */
 export interface I_i18nContent {
     text: string;
     bundle?: string;
+    atlas?: string;
 }
 
 /**

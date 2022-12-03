@@ -14,13 +14,20 @@
 export type T_CmmHandler = { ok?: Function; bad?: Function };
 
 /**
+ * 进度回调
+ * - finished: 完成数
+ * - total: 总数
+ */
+export type T_ProgressHandler = (finished: number, total: number) => void;
+
+/**
  * @zh
  * 资源加载回调处理类型定义
  * @param ok 成功回调
  * @param bad 失败回调
  * @param progress 进度回调
  */
-export type T_LoadHandler = T_CmmHandler & { progress?: Function };
+export type T_LoadHandler = T_CmmHandler & { progress?: T_ProgressHandler | Function };
 
 /**
  * @zh
@@ -39,17 +46,12 @@ export type T_IdleFunction = typeof idle;
  * 安全地调用方法
  * @param handler 调用参数
  */
-export function runInSandbox(handler: {
-    onExcute: Function;
-    onError?: T_ErrorHandler;
-    onFinal?: Function;
-}) {
+export function runInSandbox(handler: { onExcute: Function; onError?: T_ErrorHandler; onFinal?: Function }) {
     try {
         typeof handler.onExcute === "function" && handler.onExcute();
     } catch (err) {
         let { message, stack } = err;
-        typeof handler.onError === "function" &&
-            handler.onError(message, stack);
+        typeof handler.onError === "function" && handler.onError(message, stack);
     } finally {
         typeof handler.onFinal === "function" && handler.onFinal();
     }
