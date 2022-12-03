@@ -50,9 +50,9 @@ const i18nLibrary: { [key: string]: I_i18nItem } = {
     CurrentLanguage: { ZH: "当前语言", EN: "Current Language" },
     SwitchLanguage: { ZH: "切换语言", EN: "Change Language" },
     SpLang: {
-        ZH: "imgs/zh_button_album",
-        EN: "imgs/en_button_album",
-        // bundle: "language",
+        ZH: "zh_button_album",
+        EN: "en_button_album",
+        bundle: "i18n",
         type: E_i18nType.Other,
     },
 };
