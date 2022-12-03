@@ -1,4 +1,5 @@
 import { _decorator, Component, Node, Button, Label, EventTouch } from "cc";
+import { Singletons } from "../../base/singletons";
 import { Timer } from "../../base/time/timer";
 const { ccclass, property } = _decorator;
 
@@ -37,7 +38,7 @@ export class TimerScene extends Component {
 
     onLoad() {
         const self = this;
-        this._delayTimer = new Timer({
+        this._delayTimer = Singletons.timer.newTimer({
             interval: 1,
             ticks: 3,
             onStart(ref) {
@@ -57,7 +58,7 @@ export class TimerScene extends Component {
         this.pauseBtn.interactable = false;
         this.stopBtn.interactable = false;
         this.restartBtn.interactable = false;
-        this._loopTimer = new Timer({
+        this._loopTimer = Singletons.timer.newTimer({
             interval: 1,
             onStart(ref) {
                 self.startBtn.interactable = false;
@@ -113,7 +114,7 @@ export class TimerScene extends Component {
                 this._loopTimer.stop();
                 break;
             case "LoopRestart":
-                this._loopTimer.restart();
+                this._loopTimer.restart(true);
                 break;
         }
     }

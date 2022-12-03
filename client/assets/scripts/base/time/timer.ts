@@ -386,6 +386,7 @@ export class Timer {
      */
     public restart(force: boolean = false) {
         if (force || this.stopped) {
+            this.stop(true);
             this._state = E_TimerState.Raw;
             this._current = 0;
             this.start();
