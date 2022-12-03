@@ -3,6 +3,7 @@
  * Author   : reyn
  * Date     : Sat Dec 03 2022 16:18:16 GMT+0800 (中国标准时间)
  * Desc     : 动态资源管理器
+ * //TODO 测试 Prefab 和其他类型
  */
 import {
     Asset,
@@ -33,9 +34,9 @@ export interface I_CacheData {
 /**
  * 动态资源管理器
  * - 目前已支持
- *  - SpriteFrame
- *  - SpriteAtlas
- *  - Prefab
+ *      - SpriteFrame
+ *      - SpriteAtlas
+ *      - Prefab
  */
 export class DynamicResMgr extends SingletonBase {
     /**
@@ -185,7 +186,7 @@ export class DynamicResMgr extends SingletonBase {
      * @param bundleNameOrUrl 资源包名称或地址
      * @returns
      */
-    async load<T extends Asset>(
+    public async load<T extends Asset>(
         path: string,
         type: typeof Asset,
         bundleNameOrUrl: string = "resources"
@@ -205,7 +206,7 @@ export class DynamicResMgr extends SingletonBase {
      * @param bundleNameOrUrl 资源包名称或地址
      * @returns
      */
-    async loadMany<T extends Asset>(
+    public async loadMany<T extends Asset>(
         dir: string,
         type: typeof Asset,
         bundleNameOrUrl: string = "resources"
@@ -304,11 +305,11 @@ export class DynamicResMgr extends SingletonBase {
     /**
      * 增加资源的引用计数
      * - 注意：
-     * - 在操作的过程中会尝试减持之前持有的资源的引用计数
+     *      - 在操作的过程中会尝试减持之前持有的资源的引用计数
      * @param component 渲染组件
      * @param asset 资源
      */
-    use<C extends UIRenderer, R extends Asset>(component: C, asset: R) {
+    public use<C extends UIRenderer, R extends Asset>(component: C, asset: R) {
         this.unuse(component);
 
         if (component instanceof Sprite) {
@@ -323,7 +324,7 @@ export class DynamicResMgr extends SingletonBase {
      * 减少资源的引用计数
      * @param component 渲染组件
      */
-    unuse<C extends UIRenderer>(component: C) {
+    public unuse<C extends UIRenderer>(component: C) {
         if (component instanceof Sprite) {
             let asset = component.spriteFrame;
             if (asset && asset.isValid && this._hasCache(asset)) {
