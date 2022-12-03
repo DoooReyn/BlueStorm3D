@@ -30,7 +30,7 @@ export class RedScene extends Component {
      ************************************************************/
 
     onLoad() {
-        Singletons.red.initLeafData();
+        Singletons.red;
     }
 
     onDestroy() {}

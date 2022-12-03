@@ -1,4 +1,5 @@
 import { sys } from "cc";
+import SingletonBase from "../singleton_base";
 import {
     E_i18nType,
     E_SupportLanguages,
@@ -14,7 +15,7 @@ import {
  * Date     : Fri Dec 02 2022 15:06:55 GMT+0800 (中国标准时间)
  * Desc     : 多语言管理器
  */
-export class i18nMgr {
+export class i18nMgr extends SingletonBase {
     /**
      * 当前语言
      */
@@ -31,12 +32,16 @@ export class i18nMgr {
     private _key: string = null;
 
     /**
-     * 构造方法
+     * 初始化回调
      * @param key 存储项
      */
-    constructor(key: string = "BlueStorm3#Language") {
+    onInitialize(key: string = "BlueStorm3#Language") {
         this._key = key;
         this._init();
+    }
+
+    onDestroy() {
+        this.disconnectAll();
     }
 
     /**

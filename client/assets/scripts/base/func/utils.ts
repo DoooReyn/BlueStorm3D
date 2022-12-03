@@ -33,6 +33,7 @@ export type T_ErrorHandler = (msg: string, stack: string) => void;
  * @param params
  */
 export function idle(...params: any[]) {}
+export type T_IdleFunction = typeof idle;
 
 /**
  * 安全地调用方法

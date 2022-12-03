@@ -1,3 +1,5 @@
+import { runInSandbox } from "../func/utils";
+
 /**
  * 红点表现形式
  */
@@ -155,10 +157,22 @@ export abstract class RedDotNode {
     }
 
     /**
+     * 断开所有红点组件
+     */
+    public disconnectAll() {
+        this._reds.length = 0;
+    }
+
+    /**
      * 通知红点组件更新
      */
     public notify() {
-        this._reds.forEach((v) => v.refresh(this));
+        const self = this;
+        runInSandbox({
+            onExcute() {
+                self._reds.forEach((v) => v && v.refresh(self));
+            },
+        });
     }
 
     /**

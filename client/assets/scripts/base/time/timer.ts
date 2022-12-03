@@ -154,7 +154,7 @@ export class Timer {
      */
     public static delayDo(cb: Function, delay?: number) {
         delay = Timer.correctInterval(delay);
-        Singletons.timerHook.scheduleOnce(() => {
+        Singletons.timer.hook.scheduleOnce(() => {
             runInSandbox({ onExcute: cb });
         }, delay);
     }
@@ -326,7 +326,7 @@ export class Timer {
             this._wrapper = () => {
                 this._onTick();
             };
-            Singletons.timerHook.schedule(
+            Singletons.timer.hook.schedule(
                 this._wrapper,
                 this.interval,
                 macro.REPEAT_FOREVER,
@@ -342,7 +342,7 @@ export class Timer {
      */
     public pause() {
         if (this.ticking) {
-            Singletons.timerHook.unschedule(this._wrapper);
+            Singletons.timer.hook.unschedule(this._wrapper);
             this._wrapper = null;
             this._state = E_TimerState.Paused;
             this._info.onPause && this._info.onPause(this);
@@ -359,7 +359,7 @@ export class Timer {
             this._wrapper = () => {
                 this._onTick();
             };
-            Singletons.timerHook.schedule(
+            Singletons.timer.hook.schedule(
                 this._wrapper,
                 this.interval,
                 macro.REPEAT_FOREVER
@@ -373,7 +373,7 @@ export class Timer {
      */
     public stop(force: boolean = false) {
         if (force || this.paused || this.ticking) {
-            Singletons.timerHook.unschedule(this._wrapper);
+            Singletons.timer.hook.unschedule(this._wrapper);
             this._wrapper = null;
             this._state = E_TimerState.Stopped;
             this._info.onStop && this._info.onStop(this);

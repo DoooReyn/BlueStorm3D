@@ -1,3 +1,4 @@
+import SingletonBase from "../singleton_base";
 import {
     E_RedDotStyle,
     RedDotLeafNode,
@@ -8,7 +9,7 @@ import {
 /**
  * 红点管理器
  */
-export class RedDotMgr {
+export class RedDotMgr extends SingletonBase {
     // 根
     public root: RedDotRootNode = null;
     // 根->菜单
@@ -24,7 +25,7 @@ export class RedDotMgr {
      * 初始化
      * - 在此构建红点树
      */
-    constructor() {
+    onInitialize() {
         // For test
         this.root = RedDotRootNode.getInstance();
         this.root_menu = new RedDotTreeNode("Menu", E_RedDotStyle.Pure);
@@ -37,15 +38,15 @@ export class RedDotMgr {
         this.menu_mail.append(this.mail_system);
         this.menu_mail.append(this.mail_private);
 
-        this.initLeafData();
-    }
-
-    /**
-     * 初始化叶子节点的红点数据
-     */
-    initLeafData() {
-        // For test
         this.mail_system.setNumber(3);
         this.mail_private.setNumber(2);
+    }
+
+    protected onDestroy(): void {
+        this.mail_private.disconnectAll();
+        this.mail_system.disconnectAll();
+        this.menu_mail.disconnectAll();
+        this.root_menu.disconnectAll();
+        this.root.disconnectAll();
     }
 }

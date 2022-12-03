@@ -34,7 +34,7 @@ export class I18nScene extends Component {
      ************************************************************/
 
     onLoad() {
-        Singletons.i18n.save();
+        Singletons.i18n;
     }
 
     onBtnClicked(e: EventTouch, type: string) {

@@ -5,6 +5,7 @@
  * Desc     : 本地数据管理
  */
 
+import SingletonBase from "../singleton_base";
 import { DataPiece } from "./data_piece";
 
 /**
@@ -26,7 +27,7 @@ export class VolumeData extends DataPiece<number> {
  * Desc     : 本地数据存储项
  *   - 可以根据 DataPiece 创建自定义的数据类型
  */
-export class DataStore {
+export class DataStore extends SingletonBase {
     private _key: string = null;
     public music: VolumeData = null;
     public effect: VolumeData = null;
@@ -35,12 +36,16 @@ export class DataStore {
      * 初始化
      * @param key 主存储项 key
      */
-    init(key: string) {
+    onInitialize(key: string) {
         if (!this._key) {
             this._key = key;
             this.music = new VolumeData(this._get("Music"), 0.8);
             this.effect = new VolumeData(this._get("Effect"), 1.0);
         }
+    }
+
+    protected onDestroy(): void {
+        this.save();
     }
 
     /**

@@ -1,6 +1,7 @@
 import { EventTarget, game, Input, input } from "cc";
+import SingletonBase from "../singleton_base";
 
-export class EventBus {
+export class EventBus extends SingletonBase {
     // 用于网络消息的事件对象
     public net: EventTarget = new EventTarget();
 
@@ -21,4 +22,16 @@ export class EventBus {
 
     // 用于系统设备的事件对象 <触摸、鼠标、加速计、游戏手柄、6DOF手柄、头戴显示器和键盘>
     public input: Input = input;
+
+    protected onInitialize(): void {}
+
+    protected onDestroy(): void {
+        this.net?.["clear"]();
+        this.i18n?.["clear"]();
+        this.red?.["clear"]();
+        this.animation?.["clear"]();
+        this.user?.["clear"]();
+        this.system?.["clear"]();
+        this.input?.["clear"]();
+    }
 }
