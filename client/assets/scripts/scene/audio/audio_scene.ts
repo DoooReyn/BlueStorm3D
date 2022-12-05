@@ -1,14 +1,14 @@
 import { _decorator, Component, Node, EventTouch } from "cc";
 import { AudioMap } from "../../base/audio/audio_map";
 import { Singletons } from "../../base/singletons";
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 /**
  * Url      : db://assets/scripts/scene/audio/audio_scene.ts
  * Author   : reyn
  * Date     : Sun Dec 04 2022 16:57:06 GMT+0800 (中国标准时间)
  * Class    : AudioScene
- * Desc     :
+ * Desc     : 音频播放测试
  */
 @ccclass("AudioScene")
 export class AudioScene extends Component {

@@ -8,7 +8,7 @@ const { ccclass, property } = _decorator;
  * Author   : reyn
  * Date     : Wed Nov 30 2022 13:45:55 GMT+0800 (中国标准时间)
  * Class    : EventScene
- * Desc     :
+ * Desc     : 事件管理测试
  */
 @ccclass("EventScene")
 export class EventScene extends Component {
@@ -33,8 +33,4 @@ export class EventScene extends Component {
                 break;
         }
     }
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
 }

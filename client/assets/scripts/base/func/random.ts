@@ -1,11 +1,10 @@
-import { Color } from "cc";
-
 /**
  * Url      : db://assets/scripts/base/func/random.ts
  * Author   : reyn
  * Date     : Thu Dec 01 2022 20:49:26 GMT+0800 (中国标准时间)
- * Desc     : 随机
+ * Desc     : 随机辅助方法
  */
+import { Color } from "cc";
 
 /**
  * 获取随机 uuid
@@ -43,12 +42,7 @@ export function color3B() {
  * @returns
  */
 export function color4B() {
-    return new Color(
-        randomColorBit(),
-        randomColorBit(),
-        randomColorBit(),
-        randomColorBit()
-    );
+    return new Color(randomColorBit(), randomColorBit(), randomColorBit(), randomColorBit());
 }
 
 /**

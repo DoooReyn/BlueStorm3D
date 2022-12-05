@@ -2,6 +2,7 @@
  * Url      : db://assets/scripts/base/singleton_base.ts
  * Author   : reyn
  * Date     : Sat Dec 03 2022 15:09:11 GMT+0800 (中国标准时间)
+ * Class    : SingletonBase
  * Desc     : 单例基类
  */
 export default abstract class SingletonBase {
@@ -11,10 +12,7 @@ export default abstract class SingletonBase {
      * @param args 初始化参数列表
      * @returns
      */
-    public static getInstance<T extends SingletonBase>(
-        this: new () => T,
-        ...args: any[]
-    ): T {
+    public static getInstance<T extends SingletonBase>(this: new () => T, ...args: any[]): T {
         if (!(<any>this)._instance) {
             (<any>this)._instance = new this();
             (<any>this)._instance.init(...args);

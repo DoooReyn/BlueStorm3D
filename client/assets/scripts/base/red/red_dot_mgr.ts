@@ -1,13 +1,12 @@
 import SingletonBase from "../singleton_base";
-import {
-    E_RedDotStyle,
-    RedDotLeafNode,
-    RedDotRootNode,
-    RedDotTreeNode,
-} from "./red_dot_tree";
+import { E_RedDotStyle, RedDotLeafNode, RedDotRootNode, RedDotTreeNode } from "./red_dot_tree";
 
 /**
- * 红点管理器
+ * Url      : db://assets/scripts/base/red/red_mgr.ts
+ * Author   : reyn
+ * Date     : Thu Dec 01 2022 20:42:56 GMT+0800 (中国标准时间)
+ * Class    : RedDotMgr
+ * Desc     : 红点管理器
  */
 export class RedDotMgr extends SingletonBase {
     // 根
@@ -23,7 +22,7 @@ export class RedDotMgr extends SingletonBase {
 
     /**
      * 初始化
-     * - 在此构建红点树
+     * - // 建议——在此构建红点树
      */
     onInitialize() {
         // For test

@@ -1,6 +1,13 @@
 import { EventTarget, game, Input, input } from "cc";
 import SingletonBase from "../singleton_base";
 
+/**
+ * Url      : db://assets/scripts/base/event/event_bus.ts
+ * Author   : reyn
+ * Date     : Sun Dec 04 2022 15:15:59 GMT+0800 (中国标准时间)
+ * Class    : EventBus
+ * Desc     : 事件对象管理中心
+ */
 export class EventBus extends SingletonBase {
     // 用于网络消息的事件对象
     public net: EventTarget = new EventTarget();

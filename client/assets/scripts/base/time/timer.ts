@@ -114,8 +114,14 @@ export class Timer {
      */
     private _info: T_TimerInfo;
 
+    /**
+     * onTick 包装方法
+     */
     private _wrapper: Function;
 
+    /**
+     * 自动 ID
+     */
     private static _id = new AutoId();
 
     /**
@@ -328,12 +334,18 @@ export class Timer {
         });
     }
 
+    /**
+     * 增加计时
+     */
     private _increaseElapseTime() {
         const current = sys.now();
         this._elapse += current - this._startAt;
         this._startAt = current;
     }
 
+    /**
+     * 获得计时
+     */
     public get elapse() {
         return this._elapse / 1000;
     }

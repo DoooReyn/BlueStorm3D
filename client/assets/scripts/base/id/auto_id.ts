@@ -1,16 +1,12 @@
-/**
- * Url      : db://assets/scripts/base/id/auto_id.ts
- * Author   : reyn
- * Date     : Thu Dec 01 2022 20:42:56 GMT+0800 (中国标准时间)
- * Desc     :
- */
-
 import { sys } from "cc";
 import { isNumber } from "../func/types";
 
 /**
- * @zh
- * 递增id生成器
+ * Url      : db://assets/scripts/base/id/auto_id.ts
+ * Author   : reyn
+ * Date     : Thu Dec 01 2022 20:42:56 GMT+0800 (中国标准时间)
+ * Class    : AutoId
+ * Desc     : 递增id生成器
  */
 export class AutoId {
     private _id: number = 0;

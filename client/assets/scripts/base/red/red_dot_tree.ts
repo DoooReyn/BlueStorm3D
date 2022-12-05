@@ -16,7 +16,11 @@ export interface I_RedDotCom {
 }
 
 /**
- * 红点树节点基类
+ * Url      : db://assets/scripts/base/red/red_dot_tree.ts
+ * Author   : reyn
+ * Date     : Thu Dec 01 2022 20:42:56 GMT+0800 (中国标准时间)
+ * Class    : RedDotNode
+ * Desc     : 红点树节点基类
  */
 export abstract class RedDotNode {
     // 名称

@@ -1,13 +1,4 @@
-import {
-    _decorator,
-    Component,
-    NodeEventType,
-    Event,
-    UITransform,
-    EventTouch,
-    Sprite,
-    Color,
-} from "cc";
+import { _decorator, Component, NodeEventType, Event, UITransform, EventTouch, Sprite, Color } from "cc";
 import { Singletons } from "../../base/singletons";
 const { ccclass } = _decorator;
 
@@ -26,7 +17,7 @@ class MyEvent extends Event {
  * Author   : reyn
  * Date     : Wed Nov 30 2022 14:23:35 GMT+0800 (中国标准时间)
  * Class    : EventTouch
- * Desc     :
+ * Desc     : 触摸事件测试
  */
 
 enum E_TouchType {
@@ -105,10 +96,6 @@ export class MyEventTouch extends Component {
     }
 
     private _onClicked(e: MyEvent) {
-        Singletons.log.i(
-            `${this.node.name} Clicked`,
-            `current: ${e.currentTarget.name}`,
-            `from: ${e.target.name}`
-        );
+        Singletons.log.i(`${this.node.name} Clicked`, `current: ${e.currentTarget.name}`, `from: ${e.target.name}`);
     }
 }

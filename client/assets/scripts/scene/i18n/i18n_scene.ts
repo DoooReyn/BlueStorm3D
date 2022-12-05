@@ -10,7 +10,7 @@ const { ccclass, property } = _decorator;
  * Author   : reyn
  * Date     : Thu Dec 01 2022 23:08:34 GMT+0800 (中国标准时间)
  * Class    : I18nScene
- * Desc     :
+ * Desc     : 多语言测试
  */
 @ccclass("I18nScene")
 export class I18nScene extends Component {

@@ -36,10 +36,13 @@ export type T_LoadHandler = T_CmmHandler & { progress?: T_ProgressHandler | Func
 export type T_ErrorHandler = (msg: string, stack: string) => void;
 
 /**
- * 啥都别做
+ * 闲置方法
  * @param params
  */
 export function idle(...params: any[]) {}
+/**
+ * 闲置方法类型
+ */
 export type T_IdleFunction = typeof idle;
 
 /**

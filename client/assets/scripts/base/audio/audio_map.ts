@@ -1,15 +1,15 @@
+/**
+ * Url      : db://assets/scripts/base/audio/audio_nap.ts
+ * Author   : reyn
+ * Date     : Sun Dec 04 2022 15:15:59 GMT+0800 (中国标准时间)
+ * Desc     : 音频资源信息映射表
+ */
 import { I_AudioInfo } from "./audio_info";
 
 /**
- * 框架在使用 AudioClip 时会自动将上一份的资源引用计数减1，
- * 正常情况下，这样会造成资源播放后立即释放，
- * 因此，建议在游戏加载阶段进行统一的加载流程，
- * 对需要常驻内存的资源引用计数加1
+ * 音频资源信息映射表
  */
-
-export type T_AudioMap = "bg1" | "click" | "camera" | "cool" | "good";
-
-export const AudioMap: { [key: string | T_AudioMap]: I_AudioInfo } = {
+export const AudioMap: { [key: string]: I_AudioInfo } = {
     bg1: { path: "audio/bg_1", loop: true, type: "music", persist: true },
     click: { path: "audio/click", persist: true, once: true },
     camera: { path: "audio/camera", once: true },

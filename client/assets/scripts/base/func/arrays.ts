@@ -1,4 +1,11 @@
 /**
+ * Url      : db://assets/scripts/base/func/arrays.ts
+ * Author   : reyn
+ * Date     : Sun Dec 04 2022 15:15:59 GMT+0800 (中国标准时间)
+ * Desc     : 数组辅助方法
+ */
+
+/**
  * 洗牌算法1
  * Fisher-Yates Shuffle 随机置乱算法
  * @param list 目标数组

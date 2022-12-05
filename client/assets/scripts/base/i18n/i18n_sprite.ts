@@ -8,6 +8,7 @@ const { ccclass, requireComponent } = _decorator;
  * Url      : db://assets/scripts/base/i18n/i18n_sprite.ts
  * Author   : reyn
  * Date     : Fri Dec 02 2022 15:06:55 GMT+0800 (中国标准时间)
+ * Class    : i18nSprite
  * Desc     : 多语言精灵组件
  */
 @ccclass("i18nSprite")

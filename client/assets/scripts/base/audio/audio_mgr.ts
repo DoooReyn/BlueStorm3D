@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, director, AudioSource, AudioClip, clamp01 } from "cc";
+import { _decorator, Node, director, AudioClip, clamp01 } from "cc";
 import { Singletons } from "../singletons";
 import SingletonBase from "../singleton_base";
 import { AudioHook } from "./audio_hook";
@@ -12,8 +12,19 @@ import { I_AudioHandler, I_AudioInfo } from "./audio_info";
  * Desc     : 音频管理器
  */
 export class AudioMgr extends SingletonBase {
+    /**
+     * 音频播放组件挂载节点
+     */
     private _audio: Node = null;
+
+    /**
+     * 音乐播放组件
+     */
     private _music: AudioHook = null;
+
+    /**
+     * 音效播放组件
+     */
     private _effect: AudioHook = null;
 
     protected onInitialize(debuggable: boolean): void {
@@ -39,22 +50,39 @@ export class AudioMgr extends SingletonBase {
         this._audio = null;
     }
 
+    /**
+     * 获得音乐音量
+     */
     get musicVolume() {
         return Singletons.store.music.data;
     }
 
+    /**
+     * 获得音效音量
+     */
     get effectVolume() {
         return Singletons.store.effect.data;
     }
 
+    /**
+     * 设置音乐音量
+     */
     set musicVolume(v: number) {
         this._music.volume = Singletons.store.music.data = clamp01(v);
     }
 
+    /**
+     * 设置音效音量
+     */
     set effectVolume(v: number) {
         this._effect.volume = Singletons.store.effect.data = clamp01(v);
     }
 
+    /**
+     * 播放音频
+     * @param audio 音频信息
+     * @param handler 音频播放回调
+     */
     play(audio: I_AudioInfo, handler?: I_AudioHandler) {
         audio.type = audio.type || "effect";
         audio.loop = audio.loop || false;
@@ -76,33 +104,54 @@ export class AudioMgr extends SingletonBase {
         });
     }
 
+    /**
+     * 暂停音乐
+     */
     pauseMusic() {
         this._music.pause();
     }
 
-    stopMusic() {
-        this._music.stop();
-    }
-
+    /**
+     * 恢复音乐
+     */
     resumeMusic() {
         this._music.resume();
     }
 
+    /**
+     * 停止音乐
+     */
+    stopMusic() {
+        this._music.stop();
+    }
+
+    /**
+     * 暂停所有音频
+     */
     pauseAll() {
         this._effect.pause();
         this.pauseMusic();
     }
 
+    /**
+     * 恢复所有音频
+     */
     resumeAll() {
         this._effect.resume();
         this.resumeMusic();
     }
 
+    /**
+     * 停止所有音频
+     */
     stopAll() {
         this._effect.stop();
         this.stopMusic();
     }
 
+    /**
+     * 卸载所有音频资源
+     */
     unloadAll() {
         this.stopAll();
         this._effect.unloadAll();

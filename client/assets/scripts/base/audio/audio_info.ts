@@ -1,4 +1,11 @@
 /**
+ * Url      : db://assets/scripts/base/audio/audio_nap.ts
+ * Author   : reyn
+ * Date     : Sun Dec 04 2022 15:15:59 GMT+0800 (中国标准时间)
+ * Desc     : 音频各种接口定义
+ */
+
+/**
  * 音频播放回调
  * onError          加载错误回调
  * onStarted        开始播放回调
