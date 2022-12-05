@@ -1,4 +1,4 @@
-import { game, macro } from "cc";
+import { game, macro, sys } from "cc";
 import { runInSandbox } from "../func/utils";
 import { AutoId } from "../id/auto_id";
 import { Singletons } from "../singletons";
@@ -75,6 +75,10 @@ export type T_TimerInfo = {
      * 发生错误时是否暂停
      */
     stopOnError?: boolean;
+    /**
+     * 开始前刷新一次
+     */
+    refreshOnStart?: boolean;
 };
 
 /**
@@ -89,6 +93,16 @@ export class Timer {
      * 当前节拍数
      */
     private _current: number = 0;
+
+    /**
+     * 开始时间
+     */
+    private _startAt: number = 0;
+
+    /**
+     * 运行时间
+     */
+    private _elapse: number = 0;
 
     /**
      * 定时器当前状态
@@ -183,8 +197,7 @@ export class Timer {
         this._info.onStop = info.onStop;
         this._info.interval = Timer.correctInterval(info.interval || 0);
         this._info.ticks = Timer.correctTicks(info.ticks || 0);
-        this._info.delay =
-            info.delay > 0 ? Timer.correctInterval(info.delay || 0) : 0;
+        this._info.delay = info.delay > 0 ? Timer.correctInterval(info.delay || 0) : 0;
         this._info.tag = info.tag || Timer.getAutoId();
     }
 
@@ -302,6 +315,7 @@ export class Timer {
         const self = this;
         runInSandbox({
             onExcute() {
+                self._increaseElapseTime();
                 self._current++;
                 self._info.onTick(self);
                 if (self.current >= self.ticks) {
@@ -314,6 +328,16 @@ export class Timer {
         });
     }
 
+    private _increaseElapseTime() {
+        const current = sys.now();
+        this._elapse += current - this._startAt;
+        this._startAt = current;
+    }
+
+    public get elapse() {
+        return this._elapse / 1000;
+    }
+
     /**
      * 运行定时器
      */
@@ -321,17 +345,14 @@ export class Timer {
         if (this._state === E_TimerState.Raw) {
             this._state = E_TimerState.Ticking;
             this._current = 0;
+            this._elapse = 0;
+            this._startAt = sys.now();
             this._info.onStart && this._info.onStart(this);
-            this._info.onTick && this._info.onTick(this);
+            this._info.refreshOnStart && this._info.onTick && this._info.onTick(this);
             this._wrapper = () => {
                 this._onTick();
             };
-            Singletons.timer.hook.schedule(
-                this._wrapper,
-                this.interval,
-                macro.REPEAT_FOREVER,
-                this.delay
-            );
+            Singletons.timer.hook.schedule(this._wrapper, this.interval, macro.REPEAT_FOREVER, this.delay);
         } else if (this.stopped) {
             this.restart();
         }
@@ -342,6 +363,7 @@ export class Timer {
      */
     public pause() {
         if (this.ticking) {
+            this._increaseElapseTime();
             Singletons.timer.hook.unschedule(this._wrapper);
             this._wrapper = null;
             this._state = E_TimerState.Paused;
@@ -354,16 +376,13 @@ export class Timer {
      */
     public resume() {
         if (this.paused) {
+            this._startAt = sys.now();
             this._state = E_TimerState.Ticking;
             this._info.onResume && this._info.onResume(this);
             this._wrapper = () => {
                 this._onTick();
             };
-            Singletons.timer.hook.schedule(
-                this._wrapper,
-                this.interval,
-                macro.REPEAT_FOREVER
-            );
+            Singletons.timer.hook.schedule(this._wrapper, this.interval, macro.REPEAT_FOREVER);
         }
     }
 
@@ -373,6 +392,7 @@ export class Timer {
      */
     public stop(force: boolean = false) {
         if (force || this.paused || this.ticking) {
+            this._increaseElapseTime();
             Singletons.timer.hook.unschedule(this._wrapper);
             this._wrapper = null;
             this._state = E_TimerState.Stopped;
@@ -386,10 +406,18 @@ export class Timer {
      */
     public restart(force: boolean = false) {
         if (force || this.stopped) {
-            this.stop(true);
-            this._state = E_TimerState.Raw;
-            this._current = 0;
+            this.reset();
             this.start();
         }
+    }
+
+    /**
+     * 重置
+     */
+    public reset() {
+        this.stop(true);
+        this._state = E_TimerState.Raw;
+        this._current = 0;
+        this._elapse = 0;
     }
 }

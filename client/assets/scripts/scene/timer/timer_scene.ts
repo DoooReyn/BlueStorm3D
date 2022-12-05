@@ -29,8 +29,8 @@ export class TimerScene extends Component {
     @property(Label)
     loopLab: Label = null;
 
-    private _delayTimer: Timer = null;
-    private _loopTimer: Timer = null;
+    private _delayTimer: string = null;
+    private _loopTimer: string = null;
 
     /************************************************************
      * 基础事件
@@ -38,83 +38,89 @@ export class TimerScene extends Component {
 
     onLoad() {
         const self = this;
-        this._delayTimer = Singletons.timer.newTimer({
-            interval: 1,
-            ticks: 3,
-            onStart(ref) {
-                self.delayBtn.interactable = false;
-                self.delayLab.string = `${ref.ticks - ref.current}秒后可用`;
+        this._delayTimer = Singletons.timer.createTimer(
+            {
+                interval: 1,
+                ticks: 3,
+                onStart(ref) {
+                    self.delayBtn.interactable = false;
+                    self.delayLab.string = `${ref.ticks - ref.current}秒后可用`;
+                },
+                onTick(ref: Timer) {
+                    self.delayLab.string = `${ref.ticks - ref.current}秒后可用`;
+                },
+                onStop() {
+                    self.delayBtn.interactable = true;
+                    self.delayLab.string = "开始";
+                },
             },
-            onTick(ref: Timer) {
-                self.delayLab.string = `${ref.ticks - ref.current}秒后可用`;
-            },
-            onStop(ref: Timer) {
-                self.delayBtn.interactable = true;
-                self.delayLab.string = "开始";
-            },
-        });
+            false
+        );
 
         this.startBtn.interactable = true;
         this.pauseBtn.interactable = false;
         this.stopBtn.interactable = false;
         this.restartBtn.interactable = false;
-        this._loopTimer = Singletons.timer.newTimer({
-            interval: 1,
-            onStart(ref) {
-                self.startBtn.interactable = false;
-                self.pauseBtn.interactable = true;
-                self.stopBtn.interactable = true;
-                self.restartBtn.interactable = true;
-                self.pauseLab.string = "暂停";
-                self.loopLab.string = `${ref.current}`;
+        this._loopTimer = Singletons.timer.createTimer(
+            {
+                interval: 1,
+                onStart(ref) {
+                    self.startBtn.interactable = false;
+                    self.pauseBtn.interactable = true;
+                    self.stopBtn.interactable = true;
+                    self.restartBtn.interactable = true;
+                    self.pauseLab.string = "暂停";
+                    self.loopLab.string = `${ref.current}`;
+                },
+                onTick(ref) {
+                    self.loopLab.string = `${ref.current}`;
+                },
+                onPause() {
+                    self.startBtn.interactable = false;
+                    self.pauseBtn.interactable = true;
+                    self.pauseLab.string = "恢复";
+                    self.stopBtn.interactable = true;
+                    self.restartBtn.interactable = true;
+                },
+                onResume() {
+                    self.startBtn.interactable = false;
+                    self.pauseBtn.interactable = true;
+                    self.pauseLab.string = "暂停";
+                    self.stopBtn.interactable = true;
+                    self.restartBtn.interactable = true;
+                },
+                onStop() {
+                    self.startBtn.interactable = false;
+                    self.pauseBtn.interactable = false;
+                    self.stopBtn.interactable = false;
+                    self.restartBtn.interactable = true;
+                    self.pauseLab.string = "暂停";
+                },
             },
-            onTick(ref) {
-                self.loopLab.string = `${ref.current}`;
-            },
-            onPause() {
-                self.startBtn.interactable = false;
-                self.pauseBtn.interactable = true;
-                self.pauseLab.string = "恢复";
-                self.stopBtn.interactable = true;
-                self.restartBtn.interactable = true;
-            },
-            onResume() {
-                self.startBtn.interactable = false;
-                self.pauseBtn.interactable = true;
-                self.pauseLab.string = "暂停";
-                self.stopBtn.interactable = true;
-                self.restartBtn.interactable = true;
-            },
-            onStop() {
-                self.startBtn.interactable = false;
-                self.pauseBtn.interactable = false;
-                self.stopBtn.interactable = false;
-                self.restartBtn.interactable = true;
-                self.pauseLab.string = "暂停";
-            },
-        });
+            false
+        );
     }
 
     onBtnClicked(e: EventTouch, type: string) {
         switch (type) {
             case "DelayStart":
-                this._delayTimer.start();
+                Singletons.timer.startTimer(this._delayTimer);
                 break;
             case "LoopStart":
-                this._loopTimer.start();
+                Singletons.timer.startTimer(this._loopTimer);
                 break;
             case "LoopPause":
-                if (this._loopTimer.paused) {
-                    this._loopTimer.resume();
-                } else if (this._loopTimer.ticking) {
-                    this._loopTimer.pause();
+                if (Singletons.timer.isTimerPaused(this._loopTimer)) {
+                    Singletons.timer.resumeTimer(this._loopTimer);
+                } else if (Singletons.timer.isTimerTicking(this._loopTimer)) {
+                    Singletons.timer.pauseTimer(this._loopTimer);
                 }
                 break;
             case "LoopStop":
-                this._loopTimer.stop();
+                Singletons.timer.stopTimer(this._loopTimer);
                 break;
             case "LoopRestart":
-                this._loopTimer.restart(true);
+                Singletons.timer.restartTimer(this._loopTimer, true);
                 break;
         }
     }
