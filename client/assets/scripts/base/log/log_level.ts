@@ -6,8 +6,8 @@
  * Desc     : 日志等级
  */
 export enum LogLevel {
-  DEBUG = 1,
-  INFO = 2,
-  WARN = 3,
-  ERROR = 4,
+    DEBUG = 1,
+    INFO = 2,
+    WARN = 3,
+    ERROR = 4,
 }
