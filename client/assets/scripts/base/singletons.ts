@@ -1,4 +1,5 @@
 import { director, Node } from "cc";
+import { AudioMgr } from "./audio/audio_mgr";
 import { EventBus } from "./event/event_bus";
 import { i18nMgr } from "./i18n/i18n_mgr";
 import { Log } from "./log/log";
@@ -56,6 +57,12 @@ export class Singletons {
         return (this._drm = DynamicResMgr.getInstance());
     }
 
+    // ---------------------------------- 音频 ----------------------------------
+    private static _audio: AudioMgr = null;
+    public static get audio() {
+        return (this._audio = AudioMgr.getInstance(true));
+    }
+
     // ---------------------------------- 销毁 ----------------------------------
     public static destoryAll() {
         if (this._log) {
@@ -91,6 +98,11 @@ export class Singletons {
         if (this._drm) {
             this._drm.destroy();
             delete this._drm;
+        }
+
+        if (this._audio) {
+            this._audio.destroy();
+            delete this._audio;
         }
     }
 }

@@ -9,6 +9,8 @@ import {
     Asset,
     assetManager,
     AssetManager,
+    AudioClip,
+    AudioSource,
     instantiate,
     Node,
     Prefab,
@@ -18,6 +20,7 @@ import {
     Texture2D,
     UIRenderer,
 } from "cc";
+import { isString } from "../func/types";
 import { T_LoadHandler } from "../func/utils";
 import { Singletons } from "../singletons";
 import SingletonBase from "../singleton_base";
@@ -150,7 +153,7 @@ export class DynamicResMgr extends SingletonBase {
         type: typeof Asset
     ): Promise<T | null> {
         path = this._realPath(path, type);
-        let asset = bundle.get(path, type);
+        let asset = bundle.get(path, type) as T;
         if (!asset) {
             return await new Promise((resolve) => {
                 bundle.load(path, type, (e: Error, asset: T) => {
@@ -164,6 +167,7 @@ export class DynamicResMgr extends SingletonBase {
                 });
             });
         }
+        return Promise.resolve(asset);
     }
 
     /**
@@ -194,7 +198,7 @@ export class DynamicResMgr extends SingletonBase {
         let bundle = await this.loadBundle(bundleNameOrUrl);
         if (!bundle) {
             Singletons.log.e(`[DRM] cant find bundle: ${bundleNameOrUrl}`);
-            return null;
+            return Promise.resolve(null);
         }
         return await this._loadAsset<T>(bundle, path, type);
     }
@@ -214,7 +218,7 @@ export class DynamicResMgr extends SingletonBase {
         let bundle = await this.loadBundle(bundleNameOrUrl);
         if (!bundle) {
             Singletons.log.e(`[DRM] cant find bundle: ${bundleNameOrUrl}`);
-            return null;
+            return Promise.resolve([]);
         }
         return new Promise((resolve) => {
             bundle.loadDir(dir, type, (e, assets: T[]) => {
@@ -259,23 +263,44 @@ export class DynamicResMgr extends SingletonBase {
 
     /**
      * 增加资源引用计数
+     * - 你需要明白自己在做什么
      * @param asset 资源
      */
-    private _addRef(asset: Asset) {
-        asset.addRef();
-        this.dumpCache(asset);
+    public addRef(asset: Asset | string) {
+        if (isString(asset)) {
+            asset = this.getCachedAsset(asset as string);
+        }
+        if (asset && asset instanceof Asset && asset.isValid) {
+            asset.addRef();
+            this.dumpCache(asset);
+        }
     }
 
     /**
      * 减少资源引用计数
+     * - 你需要明白自己在做什么
      * @param asset 资源
      */
-    private _decRef(asset: Asset) {
-        if (asset.refCount > 0) {
-            asset.decRef();
+    public decRef(asset: Asset | string) {
+        if (isString(asset)) {
+            asset = this.getCachedAsset(asset as string);
         }
-        asset.refCount <= 0 && this._removeCache((<any>asset)._uuid);
-        this.dumpCache(asset);
+        if (asset && asset instanceof Asset && asset.isValid) {
+            if (asset.refCount > 0) {
+                asset.decRef();
+            }
+            asset.refCount <= 0 && this._removeCache((<any>asset)._uuid);
+            this.dumpCache(asset);
+        }
+    }
+
+    /**
+     * 获得资源的 uuid
+     * @param asset 资源
+     * @returns
+     */
+    public getAssetUUID(asset: Asset): string {
+        return asset && (<any>asset)._uuid;
     }
 
     /**
@@ -309,13 +334,23 @@ export class DynamicResMgr extends SingletonBase {
      * @param component 渲染组件
      * @param asset 资源
      */
-    public use<C extends UIRenderer, R extends Asset>(component: C, asset: R) {
+    public use<C extends UIRenderer | AudioSource | AudioClip, R extends Asset>(component: C, asset: R) {
         this.unuse(component);
 
         if (component instanceof Sprite) {
             if (asset && asset.isValid && asset instanceof SpriteFrame && this._hasCache(asset)) {
                 component.spriteFrame = asset;
-                this._addRef(asset);
+                this.addRef(asset);
+            }
+        } else if (component instanceof AudioSource) {
+            if (asset && asset.isValid && asset instanceof AudioClip && this._hasCache(asset)) {
+                component.clip = asset;
+                this.addRef(asset);
+            }
+        } else if (component instanceof AudioClip) {
+            let asset = component;
+            if (asset && asset.isValid && this._hasCache(asset)) {
+                this.addRef(asset);
             }
         }
     }
@@ -324,12 +359,23 @@ export class DynamicResMgr extends SingletonBase {
      * 减少资源的引用计数
      * @param component 渲染组件
      */
-    public unuse<C extends UIRenderer>(component: C) {
+    public unuse<C extends UIRenderer | AudioSource | AudioClip>(component: C) {
         if (component instanceof Sprite) {
             let asset = component.spriteFrame;
             if (asset && asset.isValid && this._hasCache(asset)) {
                 component.spriteFrame = null;
-                this._decRef(asset);
+                this.decRef(asset);
+            }
+        } else if (component instanceof AudioSource) {
+            let asset = component.clip;
+            if (asset && asset.isValid && asset instanceof AudioClip && this._hasCache(asset)) {
+                component.clip = null;
+                this.decRef(asset);
+            }
+        } else if (component instanceof AudioClip) {
+            let asset = component;
+            if (asset && asset.isValid && this._hasCache(asset)) {
+                this.decRef(asset);
             }
         }
     }
@@ -347,7 +393,7 @@ export class DynamicResMgr extends SingletonBase {
             prefab = nodeOrPrefab;
         }
         if (prefab && prefab.isValid && this._hasCache(prefab)) {
-            this._addRef(prefab);
+            this.addRef(prefab);
         }
         return instantiate(nodeOrPrefab);
     }
@@ -361,8 +407,12 @@ export class DynamicResMgr extends SingletonBase {
             let prefab = (node as any)._prefab;
             node.removeFromParent();
             if (prefab && prefab.isValid && this._hasCache(prefab)) {
-                this._decRef(prefab);
+                this.decRef(prefab);
             }
         }
+    }
+
+    public getCachedAsset(uuid: string) {
+        return assetManager.assets.get(uuid);
     }
 }
