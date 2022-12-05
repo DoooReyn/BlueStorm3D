@@ -27,7 +27,7 @@ export class AudioHook extends Component {
     private _map: Map<string, I_AudioCacheInfo> = new Map();
 
     /**
-     * 开启调试
+     * 是否允许输出调试信息
      */
     private _debuggable: boolean = false;
 
@@ -41,10 +41,17 @@ export class AudioHook extends Component {
         game.off(Game.EVENT_SHOW, this.resume, this);
     }
 
+    /**
+     * 设置是否允许输出调试信息
+     */
     public set debuggable(d: boolean) {
         this._debuggable = d;
     }
 
+    /**
+     * 输出调试信息
+     * @param args 参数列表
+     */
     private _debug(...args: any[]) {
         this._debuggable && Singletons.log.i("[AudioHook]", ...args);
     }

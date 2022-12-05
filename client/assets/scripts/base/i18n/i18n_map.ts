@@ -91,7 +91,15 @@ export interface I_i18nContent {
  * 语言项监听者
  */
 export interface I_i18nListener {
+    /**
+     * 指定 i18n key
+     */
     getI18nKey(): T_i18nKey;
+
+    /**
+     * i18n 语言切换回调
+     * @param content i18n 内容
+     */
     onI18nContentChanged(content: I_i18nContent): void;
 }
 

@@ -3,7 +3,6 @@
  * Author   : reyn
  * Date     : Sat Dec 03 2022 16:18:16 GMT+0800 (中国标准时间)
  * Desc     : 动态资源管理器
- * //TODO 测试 Prefab 和其他类型
  */
 import {
     Asset,
@@ -34,10 +33,6 @@ export interface I_CacheData {
 
 /**
  * 动态资源管理器
- * - 目前已支持
- *      - SpriteFrame
- *      - SpriteAtlas
- *      - Prefab
  */
 export class DynamicResMgr extends SingletonBase {
     /**
@@ -263,7 +258,9 @@ export class DynamicResMgr extends SingletonBase {
 
     /**
      * 增加资源引用计数
-     * - // 谨慎——你需要非常明白自己在做什么
+     * - // 谨慎——使用之前，你必须非常明白自己在做什么
+     * - // 建议——对某类资源有针对性地进行自动管理，可以参考 AudioHook 的做法
+     * @sees `db://assets/scripts/base/audio/audio_hook.ts`
      * @param asset 资源
      */
     public addRef(asset: Asset | string) {
@@ -278,7 +275,9 @@ export class DynamicResMgr extends SingletonBase {
 
     /**
      * 减少资源引用计数
-     * - // 谨慎——你需要非常明白自己在做什么
+     * - // 谨慎——使用之前，你必须非常明白自己在做什么
+     * - // 建议——对某类资源有针对性地进行自动管理，可以参考 AudioHook 的做法
+     * @sees `db://assets/scripts/base/audio/audio_hook.ts`
      * @param asset 资源
      */
     public decRef(asset: Asset | string) {
@@ -338,14 +337,12 @@ export class DynamicResMgr extends SingletonBase {
     }
 
     /**
-     * 增加资源的引用计数
-     * - 注意：
-     *      - 在操作的过程中会尝试减持之前持有的资源的引用计数
+     * 替换组件使用的资源
      * @param component 渲染组件
      * @param asset 资源
      */
-    public use<C extends UIRenderer, R extends Asset>(component: C, asset: R) {
-        this.unuse(component);
+    public replace<C extends UIRenderer, R extends Asset>(component: C, asset: R) {
+        this.deprecated(component);
 
         if (component instanceof Sprite) {
             if (asset && asset.isValid && asset instanceof SpriteFrame && this._hasCache(asset)) {
@@ -356,10 +353,10 @@ export class DynamicResMgr extends SingletonBase {
     }
 
     /**
-     * 减少资源的引用计数
+     * 放弃组件使用的资源
      * @param component 渲染组件
      */
-    public unuse<C extends UIRenderer>(component: C) {
+    public deprecated<C extends UIRenderer>(component: C) {
         if (component instanceof Sprite) {
             let asset = component.spriteFrame;
             if (asset && asset.isValid && this._hasCache(asset)) {

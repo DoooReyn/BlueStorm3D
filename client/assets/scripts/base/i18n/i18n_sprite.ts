@@ -22,7 +22,7 @@ export class i18nSprite extends i18nCom {
         if (content.bundle) {
             Singletons.drm
                 .load(content.text, SpriteFrame, content.bundle)
-                .then((frame) => frame && Singletons.drm.use(image, frame));
+                .then((frame) => frame && Singletons.drm.replace(image, frame));
         }
     }
 }
