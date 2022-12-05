@@ -1,5 +1,5 @@
 /**
- * Url      : db://assets/scripts/base/res/res_mgr.ts
+ * Url      : db://assets/scripts/base/res/dynamic_res_mgr.ts
  * Author   : reyn
  * Date     : Sat Dec 03 2022 16:18:16 GMT+0800 (中国标准时间)
  * Desc     : 动态资源管理器
@@ -9,8 +9,6 @@ import {
     Asset,
     assetManager,
     AssetManager,
-    AudioClip,
-    AudioSource,
     instantiate,
     Node,
     Prefab,
@@ -29,7 +27,7 @@ import SingletonBase from "../singleton_base";
  * 缓存资源
  */
 export interface I_CacheData {
-    asset: Asset;
+    uuid: string;
     type: typeof Asset;
     bundle: string;
 }
@@ -69,6 +67,80 @@ export class DynamicResMgr extends SingletonBase {
             path += "/texture";
         }
         return path;
+    }
+
+    /**
+     * 加载单个资源
+     * - 加载不会增加引用计数
+     * @param bundle 资源包
+     * @param path 资源路径
+     * @param type 资源类型
+     * @returns
+     */
+    private async _loadAsset<T extends Asset>(
+        bundle: AssetManager.Bundle,
+        path: string,
+        type: typeof Asset
+    ): Promise<T | null> {
+        path = this._realPath(path, type);
+        let asset = bundle.get(path, type) as T;
+        if (!asset) {
+            return await new Promise((resolve) => {
+                bundle.load(path, type, (e: Error, asset: T) => {
+                    if (e) {
+                        Singletons.log.e(`[DRM] load error: ${e}`);
+                        resolve(null);
+                        return;
+                    }
+                    this._cacheAsset(asset, type, bundle.name);
+                    resolve(asset);
+                });
+            });
+        }
+        return Promise.resolve(asset);
+    }
+
+    /**
+     * 将资源加入缓存
+     * @param asset 资源
+     * @param type 资源类型
+     * @param bundle 资源隶属的包
+     */
+    private _cacheAsset(asset: Asset, type: typeof Asset, bundle: string) {
+        if (asset instanceof SpriteAtlas) {
+            asset.getSpriteFrames().forEach((v) => this._addCache(v, type, bundle));
+        }
+        this._addCache(asset, type, bundle);
+    }
+
+    /**
+     * 资源是否存在缓存中
+     * @param asset 资源
+     * @returns
+     */
+    private _hasCache(asset: Asset) {
+        const uuid = this.getAssetUUID(asset);
+        return this._cache.has(uuid);
+    }
+
+    /**
+     * 添加资源到缓存
+     * @param asset 资源
+     * @param type 资源类型
+     * @param bundle 资源包名称或地址
+     */
+    private _addCache(asset: Asset, type: typeof Asset, bundle: string) {
+        const uuid = this.getAssetUUID(asset);
+        this._cache.set(uuid, { bundle, type, uuid });
+        this.dumpCache(asset);
+    }
+
+    /**
+     * 从缓存中移除资源
+     * @param uuid 资源uuid
+     */
+    private _removeCache(uuid: string) {
+        this._cache.delete(uuid);
     }
 
     /**
@@ -141,50 +213,6 @@ export class DynamicResMgr extends SingletonBase {
 
     /**
      * 加载单个资源
-     * - 加载不会增加引用计数
-     * @param bundle 资源包
-     * @param path 资源路径
-     * @param type 资源类型
-     * @returns
-     */
-    private async _loadAsset<T extends Asset>(
-        bundle: AssetManager.Bundle,
-        path: string,
-        type: typeof Asset
-    ): Promise<T | null> {
-        path = this._realPath(path, type);
-        let asset = bundle.get(path, type) as T;
-        if (!asset) {
-            return await new Promise((resolve) => {
-                bundle.load(path, type, (e: Error, asset: T) => {
-                    if (e) {
-                        Singletons.log.e(`[DRM] load error: ${e}`);
-                        resolve(null);
-                        return;
-                    }
-                    this._cacheAsset(asset, type, bundle.name);
-                    resolve(asset);
-                });
-            });
-        }
-        return Promise.resolve(asset);
-    }
-
-    /**
-     * 将资源加入缓存
-     * @param asset 资源
-     * @param type 资源类型
-     * @param bundle 资源隶属的包
-     */
-    private _cacheAsset(asset: Asset, type: typeof Asset, bundle: string) {
-        if (asset instanceof SpriteAtlas) {
-            asset.getSpriteFrames().forEach((v) => this._addCache(v, type, bundle));
-        }
-        this._addCache(asset, type, bundle);
-    }
-
-    /**
-     * 加载单个资源
      * @param path 资源路径
      * @param type 资源类型
      * @param bundleNameOrUrl 资源包名称或地址
@@ -234,36 +262,8 @@ export class DynamicResMgr extends SingletonBase {
     }
 
     /**
-     * 资源是否存在缓存中
-     * @param asset 资源
-     * @returns
-     */
-    private _hasCache(asset: Asset) {
-        return this._cache.has((<any>asset)._uuid);
-    }
-
-    /**
-     * 添加资源到缓存
-     * @param asset 资源
-     * @param type 资源类型
-     * @param bundle 资源包名称或地址
-     */
-    private _addCache(asset: Asset, type: typeof Asset, bundle: string) {
-        this._cache.set((<any>asset)._uuid, { asset, bundle, type });
-        Singletons.log.i(`[DRM] ${asset.name}<${(<any>asset)._uuid}> 引用计数: ${asset.refCount}`);
-    }
-
-    /**
-     * 从缓存中移除资源
-     * @param uuid 资源uuid
-     */
-    private _removeCache(uuid: string) {
-        this._cache.delete(uuid);
-    }
-
-    /**
      * 增加资源引用计数
-     * - 你需要明白自己在做什么
+     * - // 谨慎——你需要非常明白自己在做什么
      * @param asset 资源
      */
     public addRef(asset: Asset | string) {
@@ -278,7 +278,7 @@ export class DynamicResMgr extends SingletonBase {
 
     /**
      * 减少资源引用计数
-     * - 你需要明白自己在做什么
+     * - // 谨慎——你需要非常明白自己在做什么
      * @param asset 资源
      */
     public decRef(asset: Asset | string) {
@@ -289,7 +289,8 @@ export class DynamicResMgr extends SingletonBase {
             if (asset.refCount > 0) {
                 asset.decRef();
             }
-            asset.refCount <= 0 && this._removeCache((<any>asset)._uuid);
+            const uuid = this.getAssetUUID(asset);
+            asset.refCount <= 0 && this._removeCache(uuid);
             this.dumpCache(asset);
         }
     }
@@ -300,20 +301,29 @@ export class DynamicResMgr extends SingletonBase {
      * @returns
      */
     public getAssetUUID(asset: Asset): string {
-        return asset && (<any>asset)._uuid;
+        if (asset) {
+            return (<any>asset)._uuid;
+        }
+        return undefined;
     }
 
     /**
      * 输出缓存资源数量
      */
     public dumpCache(asset?: Asset) {
-        if (asset) {
-            Singletons.log.i(`${asset.name}<${(<any>asset)._uuid}> 引用计数: ${asset.refCount}`);
+        if (asset instanceof Asset) {
+            const uuid = this.getAssetUUID(asset);
+            Singletons.log.i(`${asset.name}<${uuid}> 引用计数: ${asset.refCount}`);
         } else {
             let output = [`[DRM] 缓存资源数量: ${this._cache.size}`];
+            let asset = undefined;
+            let uuid = undefined;
             for (let item of this._cache) {
-                let [uuid, cache] = item;
-                output.push(`  ${cache.asset.name}<${uuid}> 引用计数: ${cache.asset.refCount}`);
+                uuid = item[0];
+                asset = this.getCachedAsset(uuid);
+                if (asset && asset.isValid && uuid) {
+                    output.push(`  ${asset.name}<${uuid}> 引用计数: ${asset.refCount}`);
+                }
             }
             Singletons.log.i(output.join("\n"));
         }
@@ -323,7 +333,7 @@ export class DynamicResMgr extends SingletonBase {
      * 移除所有缓存的资源
      */
     public removeAll() {
-        this._cache.forEach((v) => assetManager.releaseAsset(v.asset));
+        this._cache.forEach((v) => assetManager.releaseAsset(this.getCachedAsset(v.uuid)));
         this._cache.clear();
     }
 
@@ -334,22 +344,12 @@ export class DynamicResMgr extends SingletonBase {
      * @param component 渲染组件
      * @param asset 资源
      */
-    public use<C extends UIRenderer | AudioSource | AudioClip, R extends Asset>(component: C, asset: R) {
+    public use<C extends UIRenderer, R extends Asset>(component: C, asset: R) {
         this.unuse(component);
 
         if (component instanceof Sprite) {
             if (asset && asset.isValid && asset instanceof SpriteFrame && this._hasCache(asset)) {
                 component.spriteFrame = asset;
-                this.addRef(asset);
-            }
-        } else if (component instanceof AudioSource) {
-            if (asset && asset.isValid && asset instanceof AudioClip && this._hasCache(asset)) {
-                component.clip = asset;
-                this.addRef(asset);
-            }
-        } else if (component instanceof AudioClip) {
-            let asset = component;
-            if (asset && asset.isValid && this._hasCache(asset)) {
                 this.addRef(asset);
             }
         }
@@ -359,22 +359,11 @@ export class DynamicResMgr extends SingletonBase {
      * 减少资源的引用计数
      * @param component 渲染组件
      */
-    public unuse<C extends UIRenderer | AudioSource | AudioClip>(component: C) {
+    public unuse<C extends UIRenderer>(component: C) {
         if (component instanceof Sprite) {
             let asset = component.spriteFrame;
             if (asset && asset.isValid && this._hasCache(asset)) {
                 component.spriteFrame = null;
-                this.decRef(asset);
-            }
-        } else if (component instanceof AudioSource) {
-            let asset = component.clip;
-            if (asset && asset.isValid && asset instanceof AudioClip && this._hasCache(asset)) {
-                component.clip = null;
-                this.decRef(asset);
-            }
-        } else if (component instanceof AudioClip) {
-            let asset = component;
-            if (asset && asset.isValid && this._hasCache(asset)) {
                 this.decRef(asset);
             }
         }
@@ -412,6 +401,11 @@ export class DynamicResMgr extends SingletonBase {
         }
     }
 
+    /**
+     * 获取已缓存的资源
+     * @param uuid 资源uuid
+     * @returns
+     */
     public getCachedAsset(uuid: string) {
         return assetManager.assets.get(uuid);
     }
