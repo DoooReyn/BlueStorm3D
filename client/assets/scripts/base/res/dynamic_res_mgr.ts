@@ -11,6 +11,7 @@ import {
     instantiate,
     Node,
     Prefab,
+    sp,
     Sprite,
     SpriteAtlas,
     SpriteFrame,
@@ -349,6 +350,11 @@ export class DynamicResMgr extends SingletonBase {
                 component.spriteFrame = asset;
                 this.addRef(asset);
             }
+        } else if (component instanceof sp.Skeleton) {
+            if (asset && asset.isValid && asset instanceof sp.SkeletonData && this._hasCache(asset)) {
+                component.skeletonData = asset;
+                this.addRef(asset);
+            }
         }
     }
 
@@ -361,6 +367,12 @@ export class DynamicResMgr extends SingletonBase {
             let asset = component.spriteFrame;
             if (asset && asset.isValid && this._hasCache(asset)) {
                 component.spriteFrame = null;
+                this.decRef(asset);
+            }
+        } else if (component instanceof sp.Skeleton) {
+            let asset = component.skeletonData;
+            if (asset && asset.isValid && asset instanceof sp.SkeletonData && this._hasCache(asset)) {
+                component.skeletonData = null;
                 this.decRef(asset);
             }
         }

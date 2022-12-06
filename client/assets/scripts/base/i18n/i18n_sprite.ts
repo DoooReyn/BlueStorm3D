@@ -1,5 +1,5 @@
+import { _decorator, Sprite, SpriteFrame } from "cc";
 import { I_i18nContent } from "./i18n_map";
-import { _decorator, Sprite, assetManager, SpriteFrame, resources } from "cc";
 import { i18nCom } from "./i18n_com";
 import { Singletons } from "../singletons";
 const { ccclass, requireComponent } = _decorator;
@@ -15,7 +15,7 @@ const { ccclass, requireComponent } = _decorator;
 @requireComponent(Sprite)
 export class i18nSprite extends i18nCom {
     public get sprite(): Sprite {
-        return this.getComponent(Sprite);
+        return this.getComponent(Sprite) || this.addComponent(Sprite);
     }
 
     public onI18nContentChanged(content: I_i18nContent): void {
