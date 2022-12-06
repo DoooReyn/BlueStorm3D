@@ -6,6 +6,7 @@ import { RedDotMgr } from "./red/red_dot_mgr";
 import { DynamicResMgr } from "./res/dynamic_res_mgr";
 import { DataStore } from "./store/data_store";
 import { TimerMgr } from "./time/timer_mgr";
+import { UiMgr } from "./ui/ui_mgr";
 
 /**
  * Url      : db://assets/scripts/base/singletons.ts
@@ -62,6 +63,9 @@ export class Singletons {
     public static get audio() {
         return (this._audio = AudioMgr.getInstance(true));
     }
+
+    // --------------------------------- UiMgr --------------------------------
+    public static ui: UiMgr = null;
 
     // ---------------------------------- 销毁 ----------------------------------
     public static destoryAll() {

@@ -383,7 +383,7 @@ export class DynamicResMgr extends SingletonBase {
      * @param nodeOrPrefab 节点或预制体
      * @returns
      */
-    public useNode(nodeOrPrefab: Node | Prefab) {
+    public useNode(nodeOrPrefab: Node | Prefab): Node {
         let prefab = null;
         if (nodeOrPrefab instanceof Node) {
             prefab = (nodeOrPrefab as any)._prefab;
@@ -393,7 +393,7 @@ export class DynamicResMgr extends SingletonBase {
         if (prefab && prefab.isValid && this._hasCache(prefab)) {
             this.addRef(prefab);
         }
-        return instantiate(nodeOrPrefab);
+        return instantiate(nodeOrPrefab) as Node;
     }
 
     /**
