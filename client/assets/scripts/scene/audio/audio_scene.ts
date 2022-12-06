@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, EventTouch } from "cc";
+import { _decorator, Component, EventTouch } from "cc";
 import { AudioMap } from "../../base/audio/audio_map";
 import { Singletons } from "../../base/singletons";
 const { ccclass } = _decorator;
