@@ -28,9 +28,6 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 67
-      },
-      {
         "__id__": 69
       },
       {
@@ -38,10 +35,13 @@
       },
       {
         "__id__": 73
+      },
+      {
+        "__id__": 75
       }
     ],
     "_prefab": {
-      "__id__": 75
+      "__id__": 77
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -290,10 +290,13 @@
       },
       {
         "__id__": 64
+      },
+      {
+        "__id__": 66
       }
     ],
     "_prefab": {
-      "__id__": 66
+      "__id__": 68
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -1502,6 +1505,38 @@
     "fileId": "8a+apITD5MppoIumVaODsZ"
   },
   {
+    "__type__": "cc.Animation",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 12
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 67
+    },
+    "playOnLoad": false,
+    "_clips": [
+      {
+        "__uuid__": "e2dfdf21-b07a-47bf-9214-2fe1d5f4955a",
+        "__expectedType__": "cc.AnimationClip"
+      },
+      {
+        "__uuid__": "085cfa73-dfe9-44e4-9135-a3e80a9df895",
+        "__expectedType__": "cc.AnimationClip"
+      }
+    ],
+    "_defaultClip": {
+      "__uuid__": "085cfa73-dfe9-44e4-9135-a3e80a9df895",
+      "__expectedType__": "cc.AnimationClip"
+    },
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "67697GZ+lAJ6VP1Dh9uJXW"
+  },
+  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -1520,7 +1555,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 68
+      "__id__": 70
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -1547,7 +1582,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 70
+      "__id__": 72
     },
     "_alignFlags": 45,
     "_target": null,
@@ -1582,7 +1617,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 72
+      "__id__": 74
     },
     "_id": ""
   },
@@ -1599,7 +1634,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 74
+      "__id__": 76
     },
     "uiType": 2,
     "persist": true,
@@ -1611,6 +1646,17 @@
     },
     "uiMain": {
       "__id__": 62
+    },
+    "uiWinAnim": {
+      "__id__": 66
+    },
+    "uiOpenAnimClip": {
+      "__uuid__": "e2dfdf21-b07a-47bf-9214-2fe1d5f4955a",
+      "__expectedType__": "cc.AnimationClip"
+    },
+    "uiCloseAnimClip": {
+      "__uuid__": "085cfa73-dfe9-44e4-9135-a3e80a9df895",
+      "__expectedType__": "cc.AnimationClip"
     },
     "uiTapSpaceToClose": true,
     "uiLabName": {

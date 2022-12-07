@@ -28,9 +28,6 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 71
-      },
-      {
         "__id__": 73
       },
       {
@@ -38,10 +35,13 @@
       },
       {
         "__id__": 77
+      },
+      {
+        "__id__": 79
       }
     ],
     "_prefab": {
-      "__id__": 79
+      "__id__": 81
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -293,10 +293,13 @@
       },
       {
         "__id__": 68
+      },
+      {
+        "__id__": 70
       }
     ],
     "_prefab": {
-      "__id__": 70
+      "__id__": 72
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -1596,6 +1599,26 @@
     "fileId": "65q19m+0RHQJx6uJt5gwnG"
   },
   {
+    "__type__": "cc.Animation",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 12
+    },
+    "_enabled": true,
+    "__prefab": {
+      "__id__": 71
+    },
+    "playOnLoad": false,
+    "_clips": [],
+    "_defaultClip": null,
+    "_id": ""
+  },
+  {
+    "__type__": "cc.CompPrefabInfo",
+    "fileId": "01/1pkbP5NyaGiH9AGC4au"
+  },
+  {
     "__type__": "cc.PrefabInfo",
     "root": {
       "__id__": 1
@@ -1614,7 +1637,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 72
+      "__id__": 74
     },
     "_contentSize": {
       "__type__": "cc.Size",
@@ -1641,7 +1664,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 74
+      "__id__": 76
     },
     "_alignFlags": 45,
     "_target": null,
@@ -1676,7 +1699,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 76
+      "__id__": 78
     },
     "_id": ""
   },
@@ -1693,7 +1716,7 @@
     },
     "_enabled": true,
     "__prefab": {
-      "__id__": 78
+      "__id__": 80
     },
     "uiType": 2,
     "persist": true,
@@ -1705,6 +1728,17 @@
     },
     "uiMain": {
       "__id__": 66
+    },
+    "uiWinAnim": {
+      "__id__": 70
+    },
+    "uiOpenAnimClip": {
+      "__uuid__": "e2dfdf21-b07a-47bf-9214-2fe1d5f4955a",
+      "__expectedType__": "cc.AnimationClip"
+    },
+    "uiCloseAnimClip": {
+      "__uuid__": "085cfa73-dfe9-44e4-9135-a3e80a9df895",
+      "__expectedType__": "cc.AnimationClip"
     },
     "uiTapSpaceToClose": true,
     "uiLabName": {
