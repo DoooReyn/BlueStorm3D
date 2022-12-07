@@ -71,19 +71,29 @@ export abstract class UiBase extends Component {
     @property({ displayName: "常驻内存" })
     persist: boolean = true;
 
+    /**
+     * 资源信息
+     */
     protected _uiInfo: I_UiInfo = null;
+
+    /**
+     * 关闭回调列表
+     */
     protected _closeHandlers: Function[] = [];
 
-    start() {
-        if (this.persist) {
-            Singletons.drm.addRef((<any>this.node)._prefab.asset);
-        }
-    }
-
+    /**
+     * 设置资源信息
+     * @param info 资源信息
+     */
     public setUiInfo(info: I_UiInfo) {
         this._uiInfo = Object.assign({}, info);
     }
 
+    /**
+     * 是否同一个Ui
+     * @param info 资源信息
+     * @returns
+     */
     public isTheSameUiInfo(info: I_UiInfo) {
         return this._uiInfo.path === info.path && this._uiInfo.bundle === info.bundle;
     }
@@ -102,7 +112,7 @@ export abstract class UiBase extends Component {
      * @param args 参数列表
      */
     public playOpen(...args: any[]) {
-        Singletons.log.i(`[${this.name}] 播放打开动画: `, args);
+        Singletons.log.i(`[${this.node.name}] 播放打开动画: `, args);
     }
 
     /**
@@ -110,7 +120,7 @@ export abstract class UiBase extends Component {
      * @param args 参数列表
      */
     public playClose(...args: any[]) {
-        Singletons.log.i(`[${this.name}] 播放关闭动画: `, args);
+        Singletons.log.i(`[${this.node.name}] 播放关闭动画: `, args);
         this.close();
     }
 

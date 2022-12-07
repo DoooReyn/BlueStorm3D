@@ -1229,9 +1229,11 @@
   },
   {
     "__type__": "cc.ClickEvent",
-    "target": null,
+    "target": {
+      "__id__": 1
+    },
     "component": "",
-    "_componentId": "f0b5bDunBNFcLeXz42Pgq3Q",
+    "_componentId": "80268MTaxJHQruAgNXjebIe",
     "handler": "onCloseBtnTriggered",
     "customEventData": ""
   },

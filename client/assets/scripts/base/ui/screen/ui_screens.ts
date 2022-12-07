@@ -1,5 +1,7 @@
 import { _decorator, Component, Node } from "cc";
-import { I_UiInfo } from "../ui_base";
+import { Singletons } from "../../singletons";
+import { I_UiInfo, UiBase } from "../ui_base";
+import { UiMap } from "../ui_map";
 import { UiStack } from "../ui_stack";
 import { UiScreenBase } from "./ui_screen_base";
 const { ccclass, property } = _decorator;
@@ -19,5 +21,23 @@ export class UiScreens extends UiStack {
 
     protected isOpenAllowed(): boolean {
         return this.depth === 0;
+    }
+
+    protected onOpenLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]) {
+        return this.replace<T>(info, ...args);
+    }
+
+    protected onOpenBefore(ui: UiBase) {
+        Singletons.ui.layers.closeAll();
+        Singletons.ui.dialogs.closeAll();
+        Singletons.ui.tips.closeAll();
+    }
+
+    protected onShowLoading() {
+        Singletons.ui.loadings.open(UiMap.DefaultLoading);
+    }
+
+    protected onHideLoading() {
+        Singletons.ui.loadings.close(UiMap.DefaultLoading);
     }
 }

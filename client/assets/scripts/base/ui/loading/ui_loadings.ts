@@ -1,4 +1,5 @@
 import { _decorator, Component, Node } from "cc";
+import { UiBase, I_UiInfo } from "../ui_base";
 import { UiStack } from "../ui_stack";
 const { ccclass, property } = _decorator;
 
@@ -11,21 +12,11 @@ const { ccclass, property } = _decorator;
  */
 @ccclass("UiLoadings")
 export class UiLoadings extends UiStack {
-    /************************************************************
-     * 基础事件
-     ************************************************************/
+    protected isOpenAllowed(): boolean {
+        return this.depth === 0;
+    }
 
-    onLoad() {}
-
-    onDestroy() {}
-
-    onEnable() {}
-
-    onDisable() {}
-
-    start() {}
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
+    protected async onOpenLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
+        return this.replace<T>(info, ...args);
+    }
 }

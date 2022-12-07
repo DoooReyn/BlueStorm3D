@@ -60,23 +60,28 @@ export abstract class UiStack extends Component {
         }
 
         if (!this.isOpenAllowed()) {
-            Singletons.log.e(`[${this.name}] 打开Ui失败,已达到栈极限: ${info.bundle}/${info.path}`);
             return this.onOpenLimit<T>(info, ...args);
         }
 
+        this.onShowLoading();
         let prefab = await Singletons.drm.load<Prefab>(info.path, Prefab, info.bundle);
         if (!prefab) {
-            Singletons.log.e(`[${this.name}] 打开Ui失败,无法加载资源: ${info.bundle}/${info.path}`);
+            Singletons.log.e(`[${this.node.name}] 打开Ui失败,无法加载资源: ${info.bundle}/${info.path}`);
+            this.onHideLoading();
             return Promise.resolve(null);
         }
+        this.onHideLoading();
 
         let node = Singletons.drm.useNode(prefab);
         let ui = node.getComponent("UiBase") as T;
-        ui.setUiInfo(info);
         ui.persist && prefab.refCount <= 1 && Singletons.drm.addRef(prefab);
+        ui.setUiInfo(info);
+        this.onOpenBefore(ui);
         this.addToStack(ui);
         this.node.addChild(node);
         ui.playOpen(...args);
+        this.onOpenAfter(ui);
+        return Promise.resolve(ui);
     }
 
     /**
@@ -110,14 +115,24 @@ export abstract class UiStack extends Component {
                 this.getUi(uiIndex).playClose(...args);
             }
         } else {
-            Singletons.log.e(`[${this.name}] 关闭Ui失败,可能未打开: ${info?.bundle}/${info.path}`);
+            Singletons.log.e(`[${this.node.name}] 关闭Ui失败,可能未打开: ${info?.bundle}/${info.path}`);
         }
     }
 
+    /**
+     * Ui是否已打开
+     * @param ui Ui组件
+     * @returns
+     */
     public isStackedUi(ui: UiBase) {
         return this.getUiIndex(ui) > -1;
     }
 
+    /**
+     * 获取Ui在栈中的索引
+     * @param ui Ui组件
+     * @returns
+     */
     protected getUiIndex(ui: UiBase) {
         return this._stack.indexOf(ui);
     }
@@ -194,12 +209,25 @@ export abstract class UiStack extends Component {
     protected abstract isOpenAllowed(): boolean;
 
     /**
+     * 打开Ui之前
+     * @virtual 按需重写此方法
+     */
+    protected onOpenBefore(ui: UiBase) {}
+
+    /**
+     * 打开Ui之后
+     * @virtual 按需重写此方法
+     */
+    protected onOpenAfter(ui: UiBase) {}
+
+    /**
      * 触及限制时打开 Ui
      * @param info 资源信息
      * @param args 参数列表
      * @virtual 按需重写此方法
      */
     protected async onOpenLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
+        Singletons.log.w(`[${this.node.name}] 打开Ui失败,已达到栈极限: ${info.bundle}/${info.path}`);
         return Promise.resolve(null);
     }
 
@@ -209,7 +237,7 @@ export abstract class UiStack extends Component {
      * @param index index 索引
      */
     protected async onOpenOther<T extends UiBase>(index: number): Promise<T | null> {
-        Singletons.log.i(`[${this.name}] 打开前置 Ui: ${index}`, this.getUi(index));
+        Singletons.log.w(`[${this.node.name}] 打开前置 Ui: ${index}`, this.getUi(index));
         return Promise.resolve(null);
     }
 
@@ -219,8 +247,9 @@ export abstract class UiStack extends Component {
      * @param index index 索引
      */
     protected async onOpenAgain<T extends UiBase>(index: number): Promise<T | null> {
-        Singletons.log.i(`[${this.name}] 再次打开 Ui: ${index}`, this.getUi(index));
-        return Promise.resolve(null);
+        let ui = this.getUi(index) as T;
+        Singletons.log.w(`[${this.node.name}] 再次打开 Ui: ${index}`, ui);
+        return Promise.resolve(ui);
     }
 
     /**
@@ -229,6 +258,16 @@ export abstract class UiStack extends Component {
      * @param index index 索引
      */
     protected onCloseOther(index: number) {
-        Singletons.log.i(`[${this.name}] 关闭前置 Ui: ${index}`, this.getUi(index));
+        Singletons.log.w(`[${this.node.name}] 关闭前置 Ui: ${index}`, this.getUi(index));
     }
+
+    /**
+     * 显示Ui资源加载 Loading
+     */
+    protected onShowLoading() {}
+
+    /**
+     * 隐藏Ui资源加载 Loading
+     */
+    protected onHideLoading() {}
 }

@@ -313,7 +313,7 @@ export class DynamicResMgr extends SingletonBase {
     public dumpCache(asset?: Asset) {
         if (asset instanceof Asset) {
             const uuid = this.getAssetUUID(asset);
-            Singletons.log.i(`${asset.name}<${uuid}> 引用计数: ${asset.refCount}`);
+            Singletons.log.i(`[DRM] ${asset.name}<${uuid}> 引用计数: ${asset.refCount}`);
         } else {
             let output = [`[DRM] 缓存资源数量: ${this._cache.size}`];
             let asset = undefined;

@@ -1,6 +1,7 @@
 import { _decorator, EventTouch } from "cc";
 import { Singletons } from "../../base/singletons";
 import { UiScreenBase } from "../../base/ui/screen/ui_screen_base";
+import { UiMap } from "../../base/ui/ui_map";
 const { ccclass } = _decorator;
 
 /**
@@ -17,8 +18,8 @@ export class HomeScreen extends UiScreenBase {
      ************************************************************/
 
     onBtnReplaceClicked(_: EventTouch, type: string) {
-        let prefab = { HomeScreen: "home_screen", GameScreen: "game_screen" }[type];
-        Singletons.ui.screens.open({ path: `prefab/${prefab}` });
+        let uiInfo = UiMap[type];
+        uiInfo && Singletons.ui.screens.open(uiInfo);
     }
 
     start() {
