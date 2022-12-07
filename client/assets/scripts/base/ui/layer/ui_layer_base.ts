@@ -1,5 +1,6 @@
-import { _decorator, Component, Node, Button, EventHandler, Label } from "cc";
+import { _decorator, Button } from "cc";
 import { i18nLabel } from "../../i18n/i18n_label";
+import { addClickHandler } from "../add_ons/ui_helper";
 import { CE_UI_Type, UiBase } from "../ui_base";
 const { ccclass, property } = _decorator;
 
@@ -27,10 +28,6 @@ export class UiLayerBase extends UiBase {
 
     protected onLoad() {
         super.onLoad && super.onLoad();
-        const clickEventHandler = new EventHandler();
-        clickEventHandler.target = this.node;
-        clickEventHandler.component = "UiLayerBase";
-        clickEventHandler.handler = "onCloseBtnTriggered";
-        this.uiBtnBack.clickEvents.push(clickEventHandler);
+        addClickHandler(this.uiBtnBack, this.node, "UiLayerBase", "onCloseBtnTriggered");
     }
 }

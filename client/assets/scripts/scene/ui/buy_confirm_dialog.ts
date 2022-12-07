@@ -6,9 +6,6 @@ const { ccclass, property } = _decorator;
 
 @ccclass
 export class BuyConfirmDialog extends UiDialogBase {
-    @property({ displayName: "标题", type: Label })
-    uiLabTitle: Label = null;
-
     @property({ displayName: "名称", type: Label })
     uiLabName: Label = null;
 

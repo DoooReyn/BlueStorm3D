@@ -15,9 +15,6 @@ const { ccclass, property } = _decorator;
  */
 @ccclass("ItemBuyDialog")
 export class ItemBuyDialog extends UiDialogBase {
-    @property({ displayName: "标题", type: Label })
-    uiLabTitle: Label = null;
-
     @property({ displayName: "名称", type: Label })
     uiLabName: Label = null;
 
