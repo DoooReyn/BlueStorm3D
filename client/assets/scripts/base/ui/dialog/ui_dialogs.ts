@@ -1,4 +1,7 @@
 import { _decorator, Component, Node } from "cc";
+import { Singletons } from "../../singletons";
+import { UiBase } from "../ui_base";
+import { UiMap } from "../ui_map";
 import { UiStack } from "../ui_stack";
 const { ccclass, property } = _decorator;
 
@@ -11,21 +14,15 @@ const { ccclass, property } = _decorator;
  */
 @ccclass("UiDialogs")
 export class UiDialogs extends UiStack {
-    /************************************************************
-     * 基础事件
-     ************************************************************/
+    protected isOpenAllowed(): boolean {
+        return true;
+    }
 
-    onLoad() {}
+    protected onShowLoading() {
+        Singletons.ui.loadings.open(UiMap.DefaultLoading);
+    }
 
-    onDestroy() {}
-
-    onEnable() {}
-
-    onDisable() {}
-
-    start() {}
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
+    protected onHideLoading() {
+        Singletons.ui.loadings.close(UiMap.DefaultLoading);
+    }
 }

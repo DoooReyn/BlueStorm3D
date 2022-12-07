@@ -1,7 +1,7 @@
-import { _decorator, Component, Enum, EventTouch, Event, tweenUtil } from "cc";
+import { _decorator, Component, Enum, EventTouch, Event, BlockInputEvents } from "cc";
 import { runInSandbox } from "../func/utils";
 import { Singletons } from "../singletons";
-const { ccclass, property, disallowMultiple } = _decorator;
+const { ccclass, property, disallowMultiple, requireComponent } = _decorator;
 
 /**
  * UI 类型
@@ -64,12 +64,17 @@ export class UiEvent extends Event {
  */
 @ccclass("UiBase")
 @disallowMultiple(true)
+@requireComponent(BlockInputEvents)
 export abstract class UiBase extends Component {
     @property({ displayName: "UI类型", type: CE_UI_Type })
     uiType = CE_UI_Type.Screen;
 
     @property({ displayName: "常驻内存" })
     persist: boolean = true;
+
+    protected onLoad() {
+        this.getComponent(BlockInputEvents) || this.addComponent(BlockInputEvents);
+    }
 
     /**
      * 资源信息

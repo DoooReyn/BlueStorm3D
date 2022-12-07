@@ -1,4 +1,5 @@
-import { _decorator, Component, Node } from "cc";
+import { _decorator, Component, Node, Button, EventHandler, Label } from "cc";
+import { i18nLabel } from "../../i18n/i18n_label";
 import { CE_UI_Type, UiBase } from "../ui_base";
 const { ccclass, property } = _decorator;
 
@@ -14,21 +15,22 @@ export class UiLayerBase extends UiBase {
     @property({ displayName: "UI类型", type: CE_UI_Type, override: true, readonly: true })
     uiType = CE_UI_Type.Layer;
 
+    @property({ displayName: "返回按钮", type: Button })
+    uiBtnBack: Button = null;
+
+    @property({ displayName: "标题文本", type: i18nLabel })
+    uiLabTitle: i18nLabel = null;
+
     /************************************************************
      * 基础事件
      ************************************************************/
 
-    onLoad() {}
-
-    onDestroy() {}
-
-    onEnable() {}
-
-    onDisable() {}
-
-    start() {}
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
+    protected onLoad() {
+        super.onLoad && super.onLoad();
+        const clickEventHandler = new EventHandler();
+        clickEventHandler.target = this.node;
+        clickEventHandler.component = "UiLayerBase";
+        clickEventHandler.handler = "onCloseBtnTriggered";
+        this.uiBtnBack.clickEvents.push(clickEventHandler);
+    }
 }

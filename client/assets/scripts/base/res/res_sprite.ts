@@ -18,8 +18,6 @@ export class ResSprite extends Component {
 
     public setSpriteFrame(path: string, bundle?: string): void {
         const image = this.sprite;
-        Singletons.drm
-            .load(path, SpriteFrame, bundle || "resources")
-            .then((frame) => frame && Singletons.drm.replace(image, frame));
+        Singletons.drm.load(path, SpriteFrame, bundle).then((frame) => frame && Singletons.drm.replace(image, frame));
     }
 }

@@ -18,7 +18,7 @@ export class UIHackableButton {
             // @ts-ignore
             Button.prototype._applyTransition = function (state: string) {
                 raw.call(this, state);
-                this.node.emit(UIButtonEventType.STATE_CHANGED, state, this);
+                this.node.emit(E_UIButtonEventType.STATE_CHANGED, state, this);
             };
         }
     }
@@ -27,7 +27,7 @@ export class UIHackableButton {
 /**
  * UIHackButton 支持的事件
  */
-export enum UIButtonEventType {
+export enum E_UIButtonEventType {
     CLICK = "click",
     STATE_CHANGED = "state-changed",
 }

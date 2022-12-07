@@ -22,11 +22,7 @@ export class HomeScreen extends UiScreenBase {
         uiInfo && Singletons.ui.screens.open(uiInfo);
     }
 
-    start() {
-        Singletons.log.i(this);
+    onBtnBagClicked(_: EventTouch) {
+        Singletons.ui.layers.open(UiMap.BagLayer);
     }
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
 }

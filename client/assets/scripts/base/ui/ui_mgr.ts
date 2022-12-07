@@ -6,6 +6,7 @@ import { UiLoadings } from "./loading/ui_loadings";
 import { UiScreens } from "./screen/ui_screens";
 import { UiTips } from "./tip/ui_tips";
 import { E_UI_Type as E_Ui_Type, I_UiInfo, UiBase } from "./ui_base";
+import { UiMap } from "./ui_map";
 const { ccclass, requireComponent, property, disallowMultiple } = _decorator;
 
 /**
@@ -39,6 +40,6 @@ export class UiMgr extends Component {
     }
 
     start() {
-        Singletons.ui.screens.open({ path: "prefab/home_screen" }, "HomeScreen");
+        Singletons.ui.screens.open(UiMap.HomeScreen);
     }
 }

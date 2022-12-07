@@ -1,6 +1,9 @@
-import { _decorator, Component, Node } from "cc";
+import { _decorator } from "cc";
+import { Singletons } from "../../singletons";
+import { UiBase } from "../ui_base";
+import { UiMap } from "../ui_map";
 import { UiStack } from "../ui_stack";
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 /**
  * Url      : db://assets/scripts/base/ui/ui_layers.ts
@@ -11,21 +14,24 @@ const { ccclass, property } = _decorator;
  */
 @ccclass("UiLayers")
 export class UiLayers extends UiStack {
-    /************************************************************
-     * 基础事件
-     ************************************************************/
+    protected isOpenAllowed(): boolean {
+        return true;
+    }
 
-    onLoad() {}
+    protected onOpenBefore(ui: UiBase) {
+        Singletons.ui.dialogs.closeAll();
+    }
 
-    onDestroy() {}
+    protected async onOpenAgain<T extends UiBase>(index: number): Promise<T | null> {
+        Singletons.ui.dialogs.closeAll();
+        return Promise.resolve(this.getUi(index) as T);
+    }
 
-    onEnable() {}
+    protected onShowLoading() {
+        Singletons.ui.loadings.open(UiMap.DefaultLoading);
+    }
 
-    onDisable() {}
-
-    start() {}
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
+    protected onHideLoading() {
+        Singletons.ui.loadings.close(UiMap.DefaultLoading);
+    }
 }

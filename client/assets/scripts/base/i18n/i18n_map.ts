@@ -50,6 +50,8 @@ const i18nLibrary: { [key: string]: I_i18nItem } = {
     LangEN: { ZH: "英文", EN: "English" },
     CurrentLanguage: { ZH: "当前语言", EN: "Current Language" },
     SwitchLanguage: { ZH: "切换语言", EN: "Change Language" },
+    TitleBag: { ZH: "背包", EN: "Bag" },
+    TitleShop: { ZH: "商店", EN: "Shop" },
     SpLang: {
         ZH: "zh_button_album",
         EN: "en_button_album",
@@ -66,6 +68,8 @@ export const i18nKeyMap = Enum({
     LangEN: 102,
     CurrentLanguage: 103,
     SwitchLanguage: 104,
+    TitleBag: 2001,
+    TitleShop: 2002,
     SpLang: 10001,
 });
 

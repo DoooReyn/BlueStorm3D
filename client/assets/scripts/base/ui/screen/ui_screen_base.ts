@@ -6,8 +6,4 @@ const { ccclass, property } = _decorator;
 export class UiScreenBase extends UiBase {
     @property({ displayName: "UI类型", type: CE_UI_Type, override: true, readonly: true })
     uiType = CE_UI_Type.Screen;
-
-    start() {}
-
-    update(deltaTime: number) {}
 }
