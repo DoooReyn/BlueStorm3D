@@ -18,7 +18,7 @@ export class BagLayer extends UiLayerBase {
     uiFrameItem: Node = null;
 
     protected onEnable() {
-        // 建议——这里为了快速展示，把道具点击监听放在这里，实际上应该在道具预制体上制作
+        // 这里为了快速展示，把道具点击监听放在这里，实际上应该在道具预制体上制作
         this.uiFrameItem.children.forEach((v) => {
             v.on(E_UIButtonEventType.CLICK, this._onItemClicked, this);
         });
@@ -33,7 +33,7 @@ export class BagLayer extends UiLayerBase {
     }
 
     private _onItemClicked(button: Button) {
-        Singletons.log.i(`[BagLayer] 点击道具`, button.node.name);
+        this.i(`点击道具 ${button.node.name}`);
         Singletons.ui.dialogs.open(UiMap.ItemDetailDialog, { id: button.node.name });
     }
 }

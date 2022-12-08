@@ -1,5 +1,8 @@
 import { I_UiInfo } from "./ui_base";
 
+/**
+ * Ui资源信息映射表
+ */
 export const UiMap: { [key: string]: I_UiInfo } = {
     // Screen
     GameScreen: { path: "prefab/screen/game_screen" },
@@ -16,4 +19,3 @@ export const UiMap: { [key: string]: I_UiInfo } = {
     // Tip
     ItemUseTip: { path: "prefab/tip/item_use_tip" },
 };
-// TODO——Dialog需要支持点击外部关闭

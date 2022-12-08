@@ -1,4 +1,5 @@
-import { _decorator, Component, Node } from 'cc';
+import { _decorator, Component, Node } from "cc";
+import { Gossip } from "../../base/ui/add_ons/gossip";
 const { ccclass, property } = _decorator;
 
 /**
@@ -6,26 +7,7 @@ const { ccclass, property } = _decorator;
  * Author   : reyn
  * Date     : Tue Dec 06 2022 20:35:44 GMT+0800 (中国标准时间)
  * Class    : UiScene
- * Desc     : 
+ * Desc     :
  */
-@ccclass('UiScene')
-export class UiScene extends Component {
-    /************************************************************
-    * 基础事件
-    ************************************************************/
-
-    onLoad() {}
-
-    onDestroy() {}
-
-    onEnable() {}
-
-    onDisable() {}
-
-    start() {}
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
-}
-
+@ccclass("UiScene")
+export class UiScene extends Gossip {}

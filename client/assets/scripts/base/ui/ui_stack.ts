@@ -1,6 +1,7 @@
-import { _decorator, Component, Prefab, UI } from "cc";
+import { _decorator, Component, Prefab } from "cc";
 import { Singletons } from "../singletons";
-import { E_Ui_Event, E_UI_Type, I_UiInfo, UiBase, UiEvent } from "./ui_base";
+import { Gossip } from "./add_ons/gossip";
+import { E_Ui_Event, I_UiInfo, UiBase } from "./ui_base";
 const { ccclass } = _decorator;
 
 /**
@@ -9,15 +10,22 @@ const { ccclass } = _decorator;
  * Date     : Tue Dec 06 2022 16:12:27 GMT+0800 (中国标准时间)
  * Class    : UiStack
  * Desc     : Ui栈
- *      - 规定 Ui 栈只能按顺序添加和移除
- *      - 除非使用 replace 强行清空栈并压入新的 Ui
+ * - 规定 Ui 栈只能按顺序添加
+ * - 可以使用 `closeToRoot/closeAll/replace` 来清理栈
+ * - 移除 Ui 时，实际 Ui 节点并不直接实行删除操作，而是通过发送事件给栈（父亲）节点，让栈节点去处理
  */
 @ccclass("UiStack")
-export abstract class UiStack extends Component {
+export abstract class UiStack extends Gossip {
+    // -- 成员变量声明开始 --
+
     /**
      * Ui 栈
      */
     protected _stack: Array<UiBase> = [];
+
+    // -- 成员变量声明结束 --
+
+    // -- protected 方法开始 --
 
     protected onEnable() {
         this.node.on(E_Ui_Event.REMOVE, this.removeUi, this);
@@ -28,104 +36,12 @@ export abstract class UiStack extends Component {
     }
 
     /**
-     * Ui 栈深度
-     */
-    public get depth() {
-        return this._stack.length;
-    }
-
-    /**
      * 获得指定索引位置的 Ui 组件
      * @param index 索引
      * @returns
      */
     protected getUi(index: number) {
         if (index > -1) return this._stack[index];
-    }
-
-    /**
-     * 打开页面
-     * @param info 资源信息
-     * @param args 参数列表
-     */
-    public async open<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
-        info.bundle = info.bundle || "resources";
-        let uiIndex = this.seekUiIndexByUiInfo(info);
-        if (uiIndex > -1) {
-            if (uiIndex < this.depth - 1) {
-                return this.onOpenOther<T>(uiIndex);
-            } else {
-                return this.onOpenAgain<T>(uiIndex);
-            }
-        }
-
-        if (!this.isOpenAllowed()) {
-            return this.onOpenLimit<T>(info, ...args);
-        }
-
-        this.onShowLoading();
-        let prefab = await Singletons.drm.load<Prefab>(info.path, Prefab, info.bundle);
-        if (!prefab) {
-            Singletons.log.e(`[${this.node.name}] 打开Ui失败,无法加载资源: ${info.bundle}/${info.path}`);
-            this.onHideLoading();
-            return Promise.resolve(null);
-        }
-        this.onHideLoading();
-
-        let node = Singletons.drm.useNode(prefab);
-        let ui = node.getComponent("UiBase") as T;
-        ui.persist && prefab.refCount <= 1 && Singletons.drm.addRef(prefab);
-        ui.setUiInfo(info);
-        this.onOpenBefore(ui);
-        this.addToStack(ui);
-        this.node.addChild(node);
-        ui.playOpen(...args);
-        this.onOpenAfter(ui);
-        return Promise.resolve(ui);
-    }
-
-    /**
-     * 使用新页面替换Ui栈，即只保留新页面
-     * @param info
-     * @param args
-     * @returns
-     */
-    public async replace<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
-        let uiIndex = this.seekUiIndexByUiInfo(info);
-        if (uiIndex === 0) {
-            this.closeToRoot();
-            return Promise.resolve(this.getUi(uiIndex) as T);
-        }
-
-        this.closeAll();
-        this.open(info, ...args);
-    }
-
-    /**
-     * 关闭页面
-     * @param info 资源信息
-     * @param args 参数列表
-     */
-    public close(info: I_UiInfo, ...args: any[]) {
-        let uiIndex = this.seekUiIndexByUiInfo(info);
-        if (uiIndex > -1) {
-            if (uiIndex < this.depth - 1) {
-                return this.onCloseOther(uiIndex);
-            } else {
-                this.getUi(uiIndex).playClose(...args);
-            }
-        } else {
-            Singletons.log.e(`[${this.node.name}] 关闭Ui失败,可能未打开: ${info?.bundle}/${info.path}`);
-        }
-    }
-
-    /**
-     * Ui是否已打开
-     * @param ui Ui组件
-     * @returns
-     */
-    public isStackedUi(ui: UiBase) {
-        return this.getUiIndex(ui) > -1;
     }
 
     /**
@@ -139,10 +55,9 @@ export abstract class UiStack extends Component {
 
     /**
      * 删除并释放 Ui
-     * - // 谨慎——删除并释放Ui
      * @param ui Ui 组件
      */
-    public removeUi(ui: UiBase) {
+    protected removeUi(ui: UiBase) {
         let uiIndex = this.getUiIndex(ui);
         if (uiIndex > -1) {
             this.removeFromStack(uiIndex);
@@ -150,28 +65,6 @@ export abstract class UiStack extends Component {
             ui.node.removeFromParent();
             ui.node.destroy();
         }
-    }
-
-    /**
-     * 关闭除占地页面外的所有页面
-     */
-    public closeToRoot() {
-        for (let i = this.depth - 1; i > 0; i--) {
-            this.removeUi(this.getUi(i));
-        }
-        if (this.depth >= 1) {
-            this._stack.length = 1;
-        }
-    }
-
-    /**
-     * 关闭所有页面
-     */
-    public closeAll() {
-        for (let i = this.depth - 1; i >= 0; i--) {
-            this.removeUi(this.getUi(i));
-        }
-        this._stack.length = 0;
     }
 
     /**
@@ -227,7 +120,7 @@ export abstract class UiStack extends Component {
      * @virtual 按需重写此方法
      */
     protected async onOpenLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
-        Singletons.log.w(`[${this.node.name}] 打开Ui失败,已达到栈极限: ${info.bundle}/${info.path}`);
+        this.w(`打开Ui失败,已达到栈极限: ${info.bundle}/${info.path}`);
         return Promise.resolve(null);
     }
 
@@ -237,7 +130,7 @@ export abstract class UiStack extends Component {
      * @param index index 索引
      */
     protected async onOpenOther<T extends UiBase>(index: number): Promise<T | null> {
-        Singletons.log.w(`[${this.node.name}] 打开前置 Ui: ${index}`, this.getUi(index));
+        this.w(`打开前置 Ui: ${index}`, this.getUi(index));
         return Promise.resolve(null);
     }
 
@@ -248,7 +141,7 @@ export abstract class UiStack extends Component {
      */
     protected async onOpenAgain<T extends UiBase>(index: number): Promise<T | null> {
         let ui = this.getUi(index) as T;
-        Singletons.log.w(`[${this.node.name}] 再次打开 Ui: ${index}`, ui);
+        this.w(`再次打开 Ui: ${index}`, ui);
         return Promise.resolve(ui);
     }
 
@@ -258,7 +151,7 @@ export abstract class UiStack extends Component {
      * @param index index 索引
      */
     protected onCloseOther(index: number) {
-        Singletons.log.w(`[${this.node.name}] 关闭前置 Ui: ${index}`, this.getUi(index));
+        this.w(`关闭前置 Ui: ${index}`, this.getUi(index));
     }
 
     /**
@@ -270,4 +163,123 @@ export abstract class UiStack extends Component {
      * 隐藏Ui资源加载 Loading
      */
     protected onHideLoading() {}
+    // -- protected 方法结束 --
+
+    // -- public 方法开始 --
+
+    /**
+     * Ui 栈深度
+     */
+    public get depth() {
+        return this._stack.length;
+    }
+
+    /**
+     * 打开页面
+     * @param info 资源信息
+     * @param args 参数列表
+     */
+    public async open<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
+        info.bundle = info.bundle || "resources";
+        let uiIndex = this.seekUiIndexByUiInfo(info);
+        if (uiIndex > -1) {
+            if (uiIndex < this.depth - 1) {
+                return this.onOpenOther<T>(uiIndex);
+            } else {
+                return this.onOpenAgain<T>(uiIndex);
+            }
+        }
+
+        if (!this.isOpenAllowed()) {
+            return this.onOpenLimit<T>(info, ...args);
+        }
+
+        this.onShowLoading();
+        let prefab = await Singletons.drm.load<Prefab>(info.path, Prefab, info.bundle);
+        if (!prefab) {
+            this.e(`打开Ui失败,无法加载资源: ${info.bundle}/${info.path}`);
+            this.onHideLoading();
+            return Promise.resolve(null);
+        }
+        this.onHideLoading();
+
+        let node = Singletons.drm.useNode(prefab);
+        let ui = node.getComponent("UiBase") as T;
+        ui.persist && prefab.refCount <= 1 && Singletons.drm.addRef(prefab);
+        ui.setUiInfo(info);
+        this.onOpenBefore(ui);
+        this.addToStack(ui);
+        this.node.addChild(node);
+        ui.playOpen(...args);
+        this.onOpenAfter(ui);
+        return Promise.resolve(ui);
+    }
+
+    /**
+     * 使用新页面替换Ui栈，即只保留新页面
+     * @param info
+     * @param args
+     * @returns
+     */
+    public async replace<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
+        let uiIndex = this.seekUiIndexByUiInfo(info);
+        if (uiIndex === 0) {
+            this.closeToRoot();
+            return Promise.resolve(this.getUi(uiIndex) as T);
+        }
+
+        this.closeAll();
+        this.open(info, ...args);
+    }
+
+    /**
+     * 关闭页面
+     * @param info 资源信息
+     * @param args 参数列表
+     */
+    public close(info: I_UiInfo, ...args: any[]) {
+        let uiIndex = this.seekUiIndexByUiInfo(info);
+        if (uiIndex > -1) {
+            if (uiIndex < this.depth - 1) {
+                return this.onCloseOther(uiIndex);
+            } else {
+                this.getUi(uiIndex).playClose(...args);
+            }
+        } else {
+            this.e(`关闭Ui失败,可能未打开: ${info?.bundle}/${info.path}`);
+        }
+    }
+
+    /**
+     * Ui是否已打开
+     * @param ui Ui组件
+     * @returns
+     */
+    public isStackedUi(ui: UiBase) {
+        return this.getUiIndex(ui) > -1;
+    }
+
+    /**
+     * 关闭除栈底页面外的所有页面
+     */
+    public closeToRoot() {
+        for (let i = this.depth - 1; i > 0; i--) {
+            this.removeUi(this.getUi(i));
+        }
+        if (this.depth >= 1) {
+            this._stack.length = 1;
+        }
+    }
+
+    /**
+     * 关闭所有页面
+     */
+    public closeAll() {
+        for (let i = this.depth - 1; i >= 0; i--) {
+            this.removeUi(this.getUi(i));
+        }
+        this._stack.length = 0;
+    }
+
+    // -- public 方法结束 --
 }

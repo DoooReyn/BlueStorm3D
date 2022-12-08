@@ -22,10 +22,6 @@ export class UiLayerBase extends UiBase {
     @property({ displayName: "标题文本", type: i18nLabel })
     uiLabTitle: i18nLabel = null;
 
-    /************************************************************
-     * 基础事件
-     ************************************************************/
-
     protected onLoad() {
         super.onLoad && super.onLoad();
         addClickHandler(this.uiBtnBack, this.node, "UiLayerBase", "onCloseBtnTriggered");

@@ -29,18 +29,22 @@ export class ItemDetailDialog extends UiDialogBase {
 
     private _itemId: number = 0;
 
-    public playOpen(itemInfo: { id: string }) {
-        super.playOpen(itemInfo);
+    protected onWinOpenAnimStarted(itemInfo: { id: string }) {
+        super.onWinOpenAnimStarted();
+
         const conf = ItemDetailConfig[itemInfo.id];
-        Singletons.log.i(`[ItemDetailDialog] 打开道具: ${conf.id}`);
-        this._itemId = conf.id;
-        this.uiLabName.string = conf.name;
-        this.uiLabDesc.string = conf.desc;
-        this.uiLabNum.string = randomInteger(1, 10).toString();
-        Singletons.drm.load<SpriteFrame>(`item/${itemInfo.id}`, SpriteFrame).then((frame) => {
-            frame && Singletons.drm.replace(this.uiSpriteIcon, frame);
-            this.uiSpriteIcon.spriteFrame = frame;
-        });
+        if (conf) {
+            this._itemId = conf.id;
+            this.uiLabName.string = conf.name;
+            this.uiLabDesc.string = conf.desc;
+            this.uiLabNum.string = randomInteger(1, 10).toString();
+            Singletons.drm.load<SpriteFrame>(`item/${itemInfo.id}`, SpriteFrame).then((frame) => {
+                frame && Singletons.drm.replace(this.uiSpriteIcon, frame);
+                this.uiSpriteIcon.spriteFrame = frame;
+            });
+        } else {
+            this.e(`未找到道具配置: ${itemInfo.id}`);
+        }
     }
 
     onBtnShopClicked() {

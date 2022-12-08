@@ -29,7 +29,7 @@ export class ItemBuyDialog extends UiDialogBase {
     public playOpen(itemInfo: { id: string }) {
         super.playOpen(itemInfo);
         const conf = ItemDetailConfig[itemInfo.id];
-        Singletons.log.i(`[ItemBuyDialog] 打开道具: ${conf.id}`);
+        this.i(`打开道具: ${conf.id}`);
         this._itemId = conf.id;
         this.uiLabName.string = conf.name;
         this.uiLabDesc.string = conf.desc;

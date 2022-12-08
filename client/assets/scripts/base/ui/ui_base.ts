@@ -1,6 +1,7 @@
 import { _decorator, Component, Enum, EventTouch, Event, BlockInputEvents } from "cc";
 import { runInSandbox } from "../func/utils";
 import { Singletons } from "../singletons";
+import { Gossip } from "./add_ons/gossip";
 const { ccclass, property, disallowMultiple, requireComponent } = _decorator;
 
 /**
@@ -65,7 +66,7 @@ export class UiEvent extends Event {
 @ccclass("UiBase")
 @disallowMultiple(true)
 @requireComponent(BlockInputEvents)
-export abstract class UiBase extends Component {
+export abstract class UiBase extends Gossip {
     @property({ displayName: "UI类型", type: CE_UI_Type })
     uiType = CE_UI_Type.Screen;
 

@@ -11,21 +11,7 @@ const { ccclass, property } = _decorator;
  */
 @ccclass("UiTips")
 export class UiTips extends UiStack {
-    /************************************************************
-     * 基础事件
-     ************************************************************/
-
-    onLoad() {}
-
-    onDestroy() {}
-
-    onEnable() {}
-
-    onDisable() {}
-
-    start() {}
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
+    protected isOpenAllowed(): boolean {
+        return true;
+    }
 }

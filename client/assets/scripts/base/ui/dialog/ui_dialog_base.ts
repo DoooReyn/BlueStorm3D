@@ -1,4 +1,5 @@
 import { Node, Button, _decorator, EventTouch, UITransform, Animation, AnimationClip } from "cc";
+import { AutomaticValue } from "../../func/automatic_value";
 import { i18nLabel } from "../../i18n/i18n_label";
 import { Singletons } from "../../singletons";
 import { addClickHandler } from "../add_ons/ui_helper";
@@ -14,6 +15,8 @@ const { ccclass, property } = _decorator;
  */
 @ccclass("UiDialogBase")
 export class UiDialogBase extends UiBase {
+    // -- 成员变量声明开始 --
+
     @property({ displayName: "UI类型", type: CE_UI_Type, override: true, readonly: true })
     uiType = CE_UI_Type.Dialog;
 
@@ -38,9 +41,14 @@ export class UiDialogBase extends UiBase {
     @property({ displayName: "点击空白处关闭" })
     uiTapSpaceToClose: boolean = false;
 
-    /************************************************************
-     * 基础事件
-     ************************************************************/
+    /**
+     * 窗体动画状态标识
+     */
+    protected _winAniFlag: AutomaticValue<boolean> = new AutomaticValue<boolean>(false);
+
+    // -- 成员变量声明结束 --
+
+    // -- protected 方法开始 --
 
     protected onLoad() {
         super.onLoad && super.onLoad();
@@ -48,25 +56,22 @@ export class UiDialogBase extends UiBase {
         if (this.uiWinAnim) {
             this.uiOpenAnimClip && this.uiWinAnim.addClip(this.uiOpenAnimClip);
             this.uiCloseAnimClip && this.uiWinAnim.addClip(this.uiCloseAnimClip);
-            this.uiWinAnim.on(Animation.EventType.FINISHED, this.onWinAnimFinished, this);
-        }
-    }
-
-    openTapListener(open: boolean) {
-        if (open) {
-            this.node.on(Node.EventType.TOUCH_END, this.onTapped, this);
-        } else {
-            this.node.off(Node.EventType.TOUCH_END, this.onTapped, this);
         }
     }
 
     protected onEnable() {
-        this.openTapListener(false);
+        this.node.on(Node.EventType.TOUCH_END, this.onTapped, this);
     }
 
-    protected onDisable() {}
+    protected onDisable() {
+        this.node.off(Node.EventType.TOUCH_END, this.onTapped, this);
+    }
 
     protected onTapped(e: EventTouch) {
+        if (this._winAniFlag.value) {
+            this.d(`窗体动画正在播放中，请稍候`);
+            return;
+        }
         const hitOnStart = this.uiMain.hitTest(e.getUIStartLocation());
         const hitOnEnded = this.uiMain.hitTest(e.getUILocation());
         if (!hitOnStart && !hitOnEnded && this.uiTapSpaceToClose) {
@@ -74,32 +79,47 @@ export class UiDialogBase extends UiBase {
         }
     }
 
+    protected onWinOpenAnimStarted(...args: any) {
+        this.d(`窗体打开动画开始`, ...args);
+        this._winAniFlag.value = true;
+    }
+
+    protected onWinOpenAnimFinished(...args: any) {
+        this.d(`窗体打开动画结束`, ...args);
+        this._winAniFlag.value = false;
+    }
+
+    protected onWinCloseAnimStarted(...args: any) {
+        this.d(`窗体关闭动画开始`, ...args, this);
+        this._winAniFlag.value = true;
+    }
+
+    protected onWinCloseAnimFinished(...args: any) {
+        this.d(`窗体关闭动画结束`, ...args);
+        this._winAniFlag.value = false;
+        this.close();
+    }
+
+    // -- protected 方法结束 --
+
+    // -- public 方法开始 --
     public playOpen(...args: any[]) {
-        // TODO 将部分回调从 UiStack 移到 UiBase
         if (this.uiWinAnim) {
-            this.uiWinAnim.defaultClip = this.uiOpenAnimClip;
+            this.uiWinAnim.once(Animation.EventType.PLAY, () => this.onWinOpenAnimStarted(...args), this);
+            this.uiWinAnim.once(Animation.EventType.FINISHED, () => this.onWinOpenAnimFinished(...args), this);
             this.uiWinAnim.play(this.uiOpenAnimClip.name);
-        } else {
-            this.openTapListener(true);
         }
     }
 
     public playClose(...args: any[]) {
-        this.openTapListener(false);
         if (this.uiWinAnim) {
-            this.uiWinAnim.defaultClip = this.uiCloseAnimClip;
+            this.uiWinAnim.once(Animation.EventType.PLAY, () => this.onWinCloseAnimStarted(...args), this);
+            this.uiWinAnim.once(Animation.EventType.FINISHED, () => this.onWinCloseAnimFinished(...args), this);
             this.uiWinAnim.play(this.uiCloseAnimClip.name);
         } else {
             this.close();
         }
     }
 
-    protected onWinAnimFinished() {
-        if (this.uiWinAnim.defaultClip === this.uiOpenAnimClip) {
-            this.openTapListener(true);
-        } else {
-            this.openTapListener(false);
-            this.close();
-        }
-    }
+    // -- public 方法结束 --
 }

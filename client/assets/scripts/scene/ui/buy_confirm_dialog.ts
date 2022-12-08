@@ -16,7 +16,7 @@ export class BuyConfirmDialog extends UiDialogBase {
         super.playOpen(itemInfo);
         const itemId = `item_${itemInfo.id}`;
         const conf = ItemDetailConfig[itemId];
-        Singletons.log.i(`[ItemDetailDialog] 打开道具: ${conf.id}`);
+        this.i(`打开道具: ${conf.id}`);
         this.uiLabName.string = conf.name;
         Singletons.drm.load<SpriteFrame>(`item/${itemId}`, SpriteFrame).then((frame) => {
             frame && Singletons.drm.replace(this.uiSpriteIcon, frame);

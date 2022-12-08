@@ -27,7 +27,7 @@ export class AudioMgr extends SingletonBase {
      */
     private _effect: AudioHook = null;
 
-    protected onInitialize(debuggable: boolean): void {
+    protected onInitialize(): void {
         this._audio = new Node("Root#Audio");
         const music = new Node("Music");
         const effect = new Node("Effect");
@@ -37,7 +37,6 @@ export class AudioMgr extends SingletonBase {
         this._music = music.addComponent(AudioHook);
         this._effect = effect.addComponent(AudioHook);
 
-        this._music.debuggable = this._effect.debuggable = debuggable;
         this.musicVolume = Singletons.store.music.data;
         this.effectVolume = Singletons.store.effect.data;
     }

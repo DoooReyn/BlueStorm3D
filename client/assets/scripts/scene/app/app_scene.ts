@@ -1,5 +1,6 @@
 import { _decorator, Component } from "cc";
 import { Singletons } from "../../base/singletons";
+import { Gossip } from "../../base/ui/add_ons/gossip";
 const { ccclass } = _decorator;
 
 /**
@@ -10,32 +11,28 @@ const { ccclass } = _decorator;
  * Desc     :
  */
 @ccclass("AppScene")
-export class AppScene extends Component {
+export class AppScene extends Gossip {
     /************************************************************
      * 基础事件
      ************************************************************/
 
     onLoad() {
-        Singletons.log.d(`日志开关: ${Singletons.log.on}`);
-        Singletons.log.d(`日志等级: ${Singletons.log.level}`);
-        Singletons.store.init("BlueStorm3");
+        this.d(`日志开关: ${Singletons.log.on}`);
+        this.d(`日志等级: ${Singletons.log.level}`);
+        Singletons.store;
     }
 
     onDestroy() {}
 
     onEnable() {
-        Singletons.log.i(`${this.node.name} onEnable`);
+        this.i(`onEnable`);
     }
 
     onDisable() {
-        Singletons.log.e(`${this.node.name} onDisable`);
+        this.e(`onDisable`);
     }
 
     start() {
-        Singletons.log.w(`${this.node.name} start`);
+        this.w(`start`);
     }
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
 }

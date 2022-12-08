@@ -15,10 +15,6 @@ const { ccclass, property } = _decorator;
  */
 @ccclass("UiScreens")
 export class UiScreens extends UiStack {
-    /************************************************************
-     * 基础事件
-     ************************************************************/
-
     protected isOpenAllowed(): boolean {
         return this.depth === 0;
     }

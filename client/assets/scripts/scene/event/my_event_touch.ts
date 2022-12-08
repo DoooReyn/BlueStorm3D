@@ -1,5 +1,6 @@
 import { _decorator, Component, NodeEventType, Event, UITransform, EventTouch, Sprite, Color } from "cc";
 import { Singletons } from "../../base/singletons";
+import { Gossip } from "../../base/ui/add_ons/gossip";
 const { ccclass } = _decorator;
 
 class MyEvent extends Event {
@@ -27,7 +28,7 @@ enum E_TouchType {
 }
 
 @ccclass("MyEventTouch")
-export class MyEventTouch extends Component {
+export class MyEventTouch extends Gossip {
     private _touchType: E_TouchType = E_TouchType.SwallowForbidden;
     private _color: Color = null;
 
@@ -82,7 +83,7 @@ export class MyEventTouch extends Component {
     }
 
     private _setClicked() {
-        Singletons.log.i(`${this.node.name} Clicked`);
+        this.i(`${this.node.name} Clicked`);
         this._setColor(Color.WHITE);
         // this.node.dispatchEvent(new MyEvent("clicked", true, this.node.name));
     }
@@ -96,6 +97,6 @@ export class MyEventTouch extends Component {
     }
 
     private _onClicked(e: MyEvent) {
-        Singletons.log.i(`${this.node.name} Clicked`, `current: ${e.currentTarget.name}`, `from: ${e.target.name}`);
+        this.i(`${this.node.name} Clicked`, `current: ${e.currentTarget.name}`, `from: ${e.target.name}`);
     }
 }

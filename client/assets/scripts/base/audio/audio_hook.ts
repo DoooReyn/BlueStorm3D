@@ -1,5 +1,6 @@
 import { _decorator, Component, AudioSource, AudioClip, clamp01, isValid, game, Game } from "cc";
 import { Singletons } from "../singletons";
+import { Gossip } from "../ui/add_ons/gossip";
 import { I_AudioHandler, I_AudioInfo } from "./audio_info";
 const { ccclass } = _decorator;
 
@@ -20,16 +21,11 @@ type I_AudioCacheInfo = {
  * Desc     : 音频播放组件
  */
 @ccclass("AudioHook")
-export class AudioHook extends Component {
+export class AudioHook extends Gossip {
     /**
      * 音频缓存信息映射表
      */
     private _map: Map<string, I_AudioCacheInfo> = new Map();
-
-    /**
-     * 是否允许输出调试信息
-     */
-    private _debuggable: boolean = false;
 
     onEnable() {
         game.on(Game.EVENT_HIDE, this.pause, this);
@@ -39,21 +35,6 @@ export class AudioHook extends Component {
     onDisable() {
         game.off(Game.EVENT_HIDE, this.pause, this);
         game.off(Game.EVENT_SHOW, this.resume, this);
-    }
-
-    /**
-     * 设置是否允许输出调试信息
-     */
-    public set debuggable(d: boolean) {
-        this._debuggable = d;
-    }
-
-    /**
-     * 输出调试信息
-     * @param args 参数列表
-     */
-    private _debug(...args: any[]) {
-        this._debuggable && Singletons.log.i("[AudioHook]", ...args);
     }
 
     /**
@@ -115,7 +96,7 @@ export class AudioHook extends Component {
                 ticks,
                 onStart() {
                     if (isValid(self)) {
-                        self._debug(`${audio.path} 开始播放，时长: ${duration}s: `, audio_info);
+                        self.d(`${audio.path} 开始播放，时长: ${duration}s: `, audio_info);
                         audio_info && (audio_info.status = AudioSource.AudioState.PLAYING);
                         handler?.onStarted();
                     }
@@ -126,24 +107,24 @@ export class AudioHook extends Component {
                         if (count > loops) {
                             loops = count;
                             handler?.onFinishedOnce();
-                            self._debug(`${audio.path} 已循环${count}次`, audio_info);
+                            self.d(`${audio.path} 已循环${count}次`, audio_info);
                         }
                         if (!audio.loop && ref.current >= ticks) {
-                            self._debug(`${audio.path} 播放结束,总计${ref.elapse}s,${count} 遍`, audio_info);
+                            self.d(`${audio.path} 播放结束,总计${ref.elapse}s,${count} 遍`, audio_info);
                             handler?.onFinished();
                         }
                     }
                 },
                 onPause() {
-                    self._debug(`${audio.path} 已暂停`, audio_info);
+                    self.d(`${audio.path} 已暂停`, audio_info);
                     audio_info && (audio_info.status = AudioSource.AudioState.PAUSED);
                 },
                 onResume() {
-                    self._debug(`${audio.path} 已恢复`, audio_info);
+                    self.d(`${audio.path} 已恢复`, audio_info);
                     audio_info && (audio_info.status = AudioSource.AudioState.PLAYING);
                 },
                 onStop(ref) {
-                    self._debug(`${audio.path}已停止`, audio_info);
+                    self.d(`${audio.path}已停止`, audio_info);
                     audio_info && (audio_info.status = AudioSource.AudioState.STOPPED);
                     audio_info && Singletons.timer.delTimer(audio_info.timer);
                     Singletons.drm.decRef(uuid);

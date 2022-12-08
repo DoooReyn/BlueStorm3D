@@ -61,7 +61,7 @@ export class Singletons {
     // ---------------------------------- 音频 ----------------------------------
     private static _audio: AudioMgr = null;
     public static get audio() {
-        return (this._audio = AudioMgr.getInstance(true));
+        return (this._audio = AudioMgr.getInstance());
     }
 
     // --------------------------------- UiMgr --------------------------------

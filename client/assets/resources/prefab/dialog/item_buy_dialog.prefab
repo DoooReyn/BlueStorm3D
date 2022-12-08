@@ -1610,8 +1610,20 @@
       "__id__": 71
     },
     "playOnLoad": false,
-    "_clips": [],
-    "_defaultClip": null,
+    "_clips": [
+      {
+        "__uuid__": "e2dfdf21-b07a-47bf-9214-2fe1d5f4955a",
+        "__expectedType__": "cc.AnimationClip"
+      },
+      {
+        "__uuid__": "085cfa73-dfe9-44e4-9135-a3e80a9df895",
+        "__expectedType__": "cc.AnimationClip"
+      }
+    ],
+    "_defaultClip": {
+      "__uuid__": "085cfa73-dfe9-44e4-9135-a3e80a9df895",
+      "__expectedType__": "cc.AnimationClip"
+    },
     "_id": ""
   },
   {

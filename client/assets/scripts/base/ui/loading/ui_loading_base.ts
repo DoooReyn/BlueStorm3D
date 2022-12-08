@@ -13,21 +13,4 @@ const { ccclass, property } = _decorator;
 export class UiLoadingBase extends UiBase {
     @property({ displayName: "UI类型", type: CE_UI_Type, override: true, readonly: true })
     uiType = CE_UI_Type.Loading;
-    /************************************************************
-     * 基础事件
-     ************************************************************/
-
-    onLoad() {}
-
-    onDestroy() {}
-
-    onEnable() {}
-
-    onDisable() {}
-
-    start() {}
-
-    // update(dt: number) {}
-
-    // lateUpdate(dt: number) {}
 }
