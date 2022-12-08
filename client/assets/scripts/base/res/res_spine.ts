@@ -1,5 +1,6 @@
-import { _decorator, Component, sp } from "cc";
+import { _decorator, sp } from "cc";
 import { Singletons } from "../singletons";
+import { Gossip } from "../ui/add_ons/gossip";
 const { ccclass, requireComponent } = _decorator;
 
 /**
@@ -11,7 +12,7 @@ const { ccclass, requireComponent } = _decorator;
  */
 @ccclass("ResSpine")
 @requireComponent(sp.Skeleton)
-export class ResSpine extends Component {
+export class ResSpine extends Gossip {
     public get spine(): sp.Skeleton {
         return this.getComponent(sp.Skeleton) || this.addComponent(sp.Skeleton);
     }

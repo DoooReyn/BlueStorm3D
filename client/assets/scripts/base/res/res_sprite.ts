@@ -1,5 +1,6 @@
-import { _decorator, Sprite, SpriteFrame, Component } from "cc";
+import { _decorator, Sprite, SpriteFrame } from "cc";
 import { Singletons } from "../singletons";
+import { Gossip } from "../ui/add_ons/gossip";
 const { ccclass, requireComponent } = _decorator;
 
 /**
@@ -11,7 +12,7 @@ const { ccclass, requireComponent } = _decorator;
  */
 @ccclass("ResSprite")
 @requireComponent(Sprite)
-export class ResSprite extends Component {
+export class ResSprite extends Gossip {
     public get sprite(): Sprite {
         return this.getComponent(Sprite) || this.addComponent(Sprite);
     }

@@ -1,4 +1,5 @@
-import { _decorator, Component, game, Game } from "cc";
+import { _decorator, game, Game } from "cc";
+import { Gossip } from "../ui/add_ons/gossip";
 const { ccclass } = _decorator;
 
 /**
@@ -8,7 +9,7 @@ const { ccclass } = _decorator;
  * Desc     : 定时器执行组件
  */
 @ccclass("TimerHook")
-export default class TimerHook extends Component {
+export default class TimerHook extends Gossip {
     onPause: Function = null;
     onResume: Function = null;
 

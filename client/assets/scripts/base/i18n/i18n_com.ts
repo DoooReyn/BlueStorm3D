@@ -1,11 +1,7 @@
-import {
-    i18nKeyMap,
-    I_i18nContent,
-    I_i18nListener,
-    T_i18nKey,
-} from "./i18n_map";
-import { _decorator, Component } from "cc";
+import { i18nKeyMap, I_i18nContent, I_i18nListener, T_i18nKey } from "./i18n_map";
+import { _decorator } from "cc";
 import { Singletons } from "../singletons";
+import { Gossip } from "../ui/add_ons/gossip";
 const { ccclass, property } = _decorator;
 
 /**
@@ -15,7 +11,7 @@ const { ccclass, property } = _decorator;
  * Desc     : 多语言基础组件
  */
 @ccclass("i18nCom")
-export abstract class i18nCom extends Component implements I_i18nListener {
+export abstract class i18nCom extends Gossip implements I_i18nListener {
     @property({ type: i18nKeyMap })
     key = i18nKeyMap.CurrentLanguage;
 

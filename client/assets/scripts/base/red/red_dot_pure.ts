@@ -1,4 +1,5 @@
-import { _decorator, Component, Node } from "cc";
+import { _decorator, Node } from "cc";
+import { Gossip } from "../ui/add_ons/gossip";
 import { I_RedDotCom, RedDotNode } from "./red_dot_tree";
 const { ccclass, property } = _decorator;
 
@@ -10,11 +11,9 @@ const { ccclass, property } = _decorator;
  * Desc     : 纯红点
  */
 @ccclass
-export default class RedDotPure extends Component implements I_RedDotCom {
+export default class RedDotPure extends Gossip implements I_RedDotCom {
     @property(Node)
     red: Node = null;
-
-    onLoad() {}
 
     refresh(r: RedDotNode) {
         this.red.active = r.hasRed();
