@@ -9,13 +9,13 @@ import { UiMap } from "./ui_map";
 const { ccclass, requireComponent, property, disallowMultiple } = _decorator;
 
 /**
- * Url      : db://assets/scripts/base/ui/adpative_canvas.ts
+ * Url      : db://assets/scripts/base/ui/ui_mgr.ts
  * Author   : reyn
  * Date     : Tue Dec 06 2022 14:35:21 GMT+0800 (中国标准时间)
  * Class    : UiMgr
  * Desc     : Ui管理器
  */
-@ccclass("UiMgr")
+@ccclass("ui_mgr")
 @requireComponent(Canvas)
 @disallowMultiple(true)
 export class UiMgr extends Component {

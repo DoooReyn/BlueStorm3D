@@ -12,7 +12,7 @@ const { ccclass, property } = _decorator;
  * Class    : UiDialogs
  * Desc     : Dialog 页面管理
  */
-@ccclass("UiDialogs")
+@ccclass("ui_dialogs")
 export class UiDialogs extends UiStack {
     protected isOpenAllowed(): boolean {
         return true;

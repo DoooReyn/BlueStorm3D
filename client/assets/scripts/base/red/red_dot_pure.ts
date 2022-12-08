@@ -10,7 +10,7 @@ const { ccclass, property } = _decorator;
  * Class    : RedDotPure
  * Desc     : 纯红点
  */
-@ccclass
+@ccclass("red_dot_pure")
 export default class RedDotPure extends Gossip implements I_RedDotCom {
     @property(Node)
     red: Node = null;

@@ -9,7 +9,7 @@ const { ccclass, requireComponent } = _decorator;
  * Class    : UiDisableTouch
  * Desc     : 禁止穿透的Ui页面组件基类
  */
-@ccclass("UiDisableTouch")
+@ccclass("ui_disable_touch")
 @requireComponent(BlockInputEvents)
 export class UiDisableTouch extends UiBase {
     protected onLoad() {

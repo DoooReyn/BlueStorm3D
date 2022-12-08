@@ -9,7 +9,7 @@ const { ccclass, property } = _decorator;
  * Class    : UiTips
  * Desc     : Tip 页面管理
  */
-@ccclass("UiTips")
+@ccclass("ui_tips")
 export class UiTips extends UiStack {
     protected isOpenAllowed(): boolean {
         return true;

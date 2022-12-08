@@ -8,7 +8,7 @@ const { ccclass } = _decorator;
  * Date     : Thu Dec 01 2022 21:49:58 GMT+0800 (中国标准时间)
  * Desc     : 定时器执行组件
  */
-@ccclass("TimerHook")
+@ccclass("timer_hook")
 export default class TimerHook extends Gossip {
     onPause: Function = null;
     onResume: Function = null;

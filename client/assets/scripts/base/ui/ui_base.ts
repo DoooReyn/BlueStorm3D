@@ -64,7 +64,7 @@ export class UiEvent extends Event {
  * Class    : UiBase
  * Desc     : Ui基类
  */
-@ccclass("UiBase")
+@ccclass("ui_base")
 @disallowMultiple(true)
 export abstract class UiBase extends Gossip {
     // REGION START <Member Variables>

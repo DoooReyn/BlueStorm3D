@@ -12,7 +12,7 @@ const { ccclass } = _decorator;
  * Class    : UiLayers
  * Desc     : Layer 页面管理
  */
-@ccclass("UiLayers")
+@ccclass("ui_layers")
 export class UiLayers extends UiStack {
     protected isOpenAllowed(): boolean {
         return true;

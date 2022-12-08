@@ -9,8 +9,9 @@ const { ccclass } = _decorator;
  * Date     : Tue Dec 06 2022 16:13:21 GMT+0800 (中国标准时间)
  * Class    : UiLoadings
  * Desc     : Loading 页面管理
+ * -
  */
-@ccclass("UiLoadings")
+@ccclass("ui_loadings")
 export class UiLoadings extends UiStack {
     protected isOpenAllowed(): boolean {
         return this.depth === 0;

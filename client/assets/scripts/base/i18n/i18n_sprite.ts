@@ -11,7 +11,7 @@ const { ccclass, requireComponent } = _decorator;
  * Class    : i18nSprite
  * Desc     : 多语言精灵组件
  */
-@ccclass("i18nSprite")
+@ccclass("i18n_sprite")
 @requireComponent(Sprite)
 export class i18nSprite extends i18nCom {
     public get sprite(): Sprite {

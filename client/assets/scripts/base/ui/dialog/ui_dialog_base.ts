@@ -14,7 +14,7 @@ const { ccclass, property } = _decorator;
  * Desc     : Dialog 页面基类
  * - 一般指弹窗
  */
-@ccclass("UiDialogBase")
+@ccclass("ui_dialog_base")
 export class UiDialogBase extends UiDisableTouch {
     // REGION START <Member Variables>
 

@@ -10,7 +10,7 @@ const { ccclass, property } = _decorator;
  * Date     : Fri Dec 02 2022 15:06:55 GMT+0800 (中国标准时间)
  * Desc     : 多语言基础组件
  */
-@ccclass("i18nCom")
+@ccclass("i18n_com")
 export abstract class i18nCom extends Gossip implements I_i18nListener {
     @property({ type: i18nKeyMap })
     key = i18nKeyMap.CurrentLanguage;

@@ -1,4 +1,4 @@
-import { _decorator, Component, AudioSource, AudioClip, clamp01, isValid, game, Game } from "cc";
+import { _decorator, AudioSource, AudioClip, clamp01, isValid, game, Game } from "cc";
 import { Singletons } from "../singletons";
 import { Gossip } from "../ui/add_ons/gossip";
 import { I_AudioHandler, I_AudioInfo } from "./audio_info";
@@ -20,7 +20,7 @@ type I_AudioCacheInfo = {
  * Class    : AudioHook
  * Desc     : 音频播放组件
  */
-@ccclass("AudioHook")
+@ccclass("audio_hook")
 export class AudioHook extends Gossip {
     /**
      * 音频缓存信息映射表

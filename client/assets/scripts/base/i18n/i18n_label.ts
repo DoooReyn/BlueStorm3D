@@ -10,7 +10,7 @@ const { ccclass, requireComponent } = _decorator;
  * Class    : i18nLabel
  * Desc     : 多语言文本组件
  */
-@ccclass("i18nLabel")
+@ccclass("i18n_label")
 @requireComponent(Label)
 export class i18nLabel extends i18nCom {
     public onI18nContentChanged(content: I_i18nContent): void {

@@ -10,7 +10,7 @@ const { ccclass } = _decorator;
  * Class    : UiLoadingBase
  * Desc     : 默认 Loading，常用于短暂的Ui资源加载等待
  */
-@ccclass("UiDefaultLoading")
+@ccclass("ui_default_loading")
 export class UiDefaultLoading extends UiLoadingBase {
     protected onOpenAgain() {
         this.addRef();

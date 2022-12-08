@@ -10,7 +10,7 @@ const { ccclass, property } = _decorator;
  * Class    : RedDotNumber
  * Desc     : 数字红点
  */
-@ccclass
+@ccclass("red_dot_number")
 export default class RedDotNumber extends RedDotPure implements I_RedDotCom {
     @property(Label)
     num: Label = null;

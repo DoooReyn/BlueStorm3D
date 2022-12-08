@@ -12,7 +12,7 @@ const { ccclass, property } = _decorator;
  * Desc     : Loading 页面基类
  * - 一般指资源加载页面、场景切换页面
  */
-@ccclass("UiLoadingBase")
+@ccclass("ui_loading_base")
 export class UiLoadingBase extends UiDisableTouch {
     // REGION START <Member Variable>
 

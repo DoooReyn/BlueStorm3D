@@ -11,7 +11,7 @@ const { ccclass } = _decorator;
  * Class    : Gossip
  * Desc     : 调试信息输出组件
  */
-@ccclass("Gossip")
+@ccclass("gossip")
 export class Gossip extends Component {
     /**
      * 输出调试信息开关

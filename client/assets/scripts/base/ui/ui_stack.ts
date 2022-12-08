@@ -15,7 +15,7 @@ const { ccclass } = _decorator;
  * - 可以使用 `closeToRoot/closeAll/replace` 来清理栈
  * - 移除 Ui 时，实际 Ui 节点并不直接实行删除操作，而是通过发送事件给栈（父亲）节点，让栈节点去处理
  */
-@ccclass("UiStack")
+@ccclass("ui_stack")
 export abstract class UiStack extends Gossip {
     // REGION START <Member Variables>
 
@@ -104,6 +104,7 @@ export abstract class UiStack extends Gossip {
 
     /**
      * 打开Ui之前
+     * @param ui 当前 Ui 组件
      * @virtual 按需重写此方法
      */
     protected onOpenBefore(ui: UiBase) {}
