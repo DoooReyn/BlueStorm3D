@@ -42,6 +42,7 @@ export interface I_UiInfo {
  */
 export enum E_Ui_Event {
     REMOVE = "ui-removed",
+    OPEN_AGAIN = "ui-open-again",
 }
 
 /**
@@ -65,17 +66,14 @@ export class UiEvent extends Event {
  */
 @ccclass("UiBase")
 @disallowMultiple(true)
-@requireComponent(BlockInputEvents)
 export abstract class UiBase extends Gossip {
+    // REGION START <Member Variables>
+
     @property({ displayName: "UI类型", type: CE_UI_Type })
     uiType = CE_UI_Type.Screen;
 
     @property({ displayName: "常驻内存" })
     persist: boolean = true;
-
-    protected onLoad() {
-        this.getComponent(BlockInputEvents) || this.addComponent(BlockInputEvents);
-    }
 
     /**
      * 资源信息
@@ -86,6 +84,28 @@ export abstract class UiBase extends Gossip {
      * 关闭回调列表
      */
     protected _closeHandlers: Function[] = [];
+
+    // REGION ENDED <Member Variables>
+
+    // REGION START <protected>
+
+    protected onEnable() {
+        this.node.on(E_Ui_Event.OPEN_AGAIN, this.onOpenAgain, this);
+    }
+
+    protected onDisable() {
+        this.node.off(E_Ui_Event.OPEN_AGAIN, this.onOpenAgain, this);
+    }
+
+    /**
+     * Ui 重入
+     * @virtual 按需重写此方法
+     */
+    protected onOpenAgain() {}
+
+    // REGION ENDED <protected>
+
+    // REGION START <public>
 
     /**
      * 设置资源信息
@@ -148,4 +168,6 @@ export abstract class UiBase extends Gossip {
         this._closeHandlers.length = 0;
         this.node.parent.emit(E_Ui_Event.REMOVE, this);
     }
+
+    // REGION ENDED <protected>
 }

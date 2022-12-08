@@ -1,6 +1,7 @@
 import { _decorator, Component, Prefab } from "cc";
 import { Singletons } from "../singletons";
 import { Gossip } from "./add_ons/gossip";
+import { setupDefaultBundle } from "./add_ons/ui_helper";
 import { E_Ui_Event, I_UiInfo, UiBase } from "./ui_base";
 const { ccclass } = _decorator;
 
@@ -16,16 +17,16 @@ const { ccclass } = _decorator;
  */
 @ccclass("UiStack")
 export abstract class UiStack extends Gossip {
-    // -- 成员变量声明开始 --
+    // REGION START <Member Variables>
 
     /**
      * Ui 栈
      */
     protected _stack: Array<UiBase> = [];
 
-    // -- 成员变量声明结束 --
+    // REGION ENDED <Member Variables>
 
-    // -- protected 方法开始 --
+    // REGION START <protected>
 
     protected onEnable() {
         this.node.on(E_Ui_Event.REMOVE, this.removeUi, this);
@@ -114,7 +115,7 @@ export abstract class UiStack extends Gossip {
     protected onOpenAfter(ui: UiBase) {}
 
     /**
-     * 触及限制时打开 Ui
+     * 触及栈深度限制时打开 Ui
      * @param info 资源信息
      * @param args 参数列表
      * @virtual 按需重写此方法
@@ -130,7 +131,7 @@ export abstract class UiStack extends Gossip {
      * @param index index 索引
      */
     protected async onOpenOther<T extends UiBase>(index: number): Promise<T | null> {
-        this.w(`打开前置 Ui: ${index}`, this.getUi(index));
+        this.i(`打开前置 Ui: ${index}`, this.getUi(index));
         return Promise.resolve(null);
     }
 
@@ -141,7 +142,8 @@ export abstract class UiStack extends Gossip {
      */
     protected async onOpenAgain<T extends UiBase>(index: number): Promise<T | null> {
         let ui = this.getUi(index) as T;
-        this.w(`再次打开 Ui: ${index}`, ui);
+        this.i(`再次打开 Ui: ${index}`, ui);
+        ui.node.emit(E_Ui_Event.OPEN_AGAIN);
         return Promise.resolve(ui);
     }
 
@@ -151,21 +153,21 @@ export abstract class UiStack extends Gossip {
      * @param index index 索引
      */
     protected onCloseOther(index: number) {
-        this.w(`关闭前置 Ui: ${index}`, this.getUi(index));
+        this.i(`关闭前置 Ui: ${index}`, this.getUi(index));
     }
 
     /**
      * 显示Ui资源加载 Loading
      */
-    protected onShowLoading() {}
+    protected async onShowLoading() {}
 
     /**
      * 隐藏Ui资源加载 Loading
      */
     protected onHideLoading() {}
-    // -- protected 方法结束 --
+    // REGION ENDED <protected>
 
-    // -- public 方法开始 --
+    // REGION START <public>
 
     /**
      * Ui 栈深度
@@ -180,7 +182,7 @@ export abstract class UiStack extends Gossip {
      * @param args 参数列表
      */
     public async open<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
-        info.bundle = info.bundle || "resources";
+        setupDefaultBundle(info);
         let uiIndex = this.seekUiIndexByUiInfo(info);
         if (uiIndex > -1) {
             if (uiIndex < this.depth - 1) {
@@ -238,6 +240,7 @@ export abstract class UiStack extends Gossip {
      * @param args 参数列表
      */
     public close(info: I_UiInfo, ...args: any[]) {
+        setupDefaultBundle(info);
         let uiIndex = this.seekUiIndexByUiInfo(info);
         if (uiIndex > -1) {
             if (uiIndex < this.depth - 1) {
@@ -281,5 +284,5 @@ export abstract class UiStack extends Gossip {
         this._stack.length = 0;
     }
 
-    // -- public 方法结束 --
+    // REGION ENDED <public>
 }

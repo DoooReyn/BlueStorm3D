@@ -1,6 +1,7 @@
 import { _decorator, Node, director, AudioClip, clamp01 } from "cc";
 import { Singletons } from "../singletons";
 import SingletonBase from "../singleton_base";
+import { setupDefaultBundle } from "../ui/add_ons/ui_helper";
 import { AudioHook } from "./audio_hook";
 import { I_AudioHandler, I_AudioInfo } from "./audio_info";
 
@@ -85,8 +86,8 @@ export class AudioMgr extends SingletonBase {
     play(audio: I_AudioInfo, handler?: I_AudioHandler) {
         audio.type = audio.type || "effect";
         audio.loop = audio.loop || false;
-        audio.bundle = audio.bundle || "resources";
         audio.volume = clamp01(audio.volume || 1.0);
+        setupDefaultBundle(audio);
 
         Singletons.drm.load<AudioClip>(audio.path, AudioClip, audio.bundle).then((clip) => {
             if (!clip) {

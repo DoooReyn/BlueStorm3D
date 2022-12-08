@@ -45,3 +45,12 @@ export function addClickHandler(
     }
     return false;
 }
+
+/**
+ * 部署默认的资源包
+ * @param info 资源信息
+ */
+export function setupDefaultBundle(info: { [key: string]: any; bundle?: string }) {
+    info.bundle = info.bundle || "resources";
+    return info;
+}

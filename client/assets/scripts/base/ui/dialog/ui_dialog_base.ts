@@ -1,9 +1,9 @@
 import { Node, Button, _decorator, EventTouch, UITransform, Animation, AnimationClip } from "cc";
 import { AutomaticValue } from "../../func/automatic_value";
 import { i18nLabel } from "../../i18n/i18n_label";
-import { Singletons } from "../../singletons";
 import { addClickHandler } from "../add_ons/ui_helper";
-import { CE_UI_Type, UiBase } from "../ui_base";
+import { CE_UI_Type } from "../ui_base";
+import { UiDisableTouch } from "../ui_disable_touch";
 const { ccclass, property } = _decorator;
 
 /**
@@ -11,11 +11,12 @@ const { ccclass, property } = _decorator;
  * Author   : reyn
  * Date     : Tue Dec 06 2022 16:11:35 GMT+0800 (中国标准时间)
  * Class    : UiDialogBase
- * Desc     :
+ * Desc     : Dialog 页面基类
+ * - 一般指弹窗
  */
 @ccclass("UiDialogBase")
-export class UiDialogBase extends UiBase {
-    // -- 成员变量声明开始 --
+export class UiDialogBase extends UiDisableTouch {
+    // REGION START <Member Variables>
 
     @property({ displayName: "UI类型", type: CE_UI_Type, override: true, readonly: true })
     uiType = CE_UI_Type.Dialog;
@@ -46,9 +47,9 @@ export class UiDialogBase extends UiBase {
      */
     protected _winAniFlag: AutomaticValue<boolean> = new AutomaticValue<boolean>(false);
 
-    // -- 成员变量声明结束 --
+    // REGION ENDED <Member Variables>
 
-    // -- protected 方法开始 --
+    // REGION START <protected>
 
     protected onLoad() {
         super.onLoad && super.onLoad();
@@ -60,13 +61,21 @@ export class UiDialogBase extends UiBase {
     }
 
     protected onEnable() {
+        super.onEnable && super.onEnable();
         this.node.on(Node.EventType.TOUCH_END, this.onTapped, this);
     }
 
     protected onDisable() {
+        super.onDisable && super.onDisable();
         this.node.off(Node.EventType.TOUCH_END, this.onTapped, this);
     }
 
+    /**
+     * 页面点击事件
+     * - 在此实现 **点击窗体外部关闭** 功能
+     * @param e 触摸事件
+     * @returns
+     */
     protected onTapped(e: EventTouch) {
         if (this._winAniFlag.value) {
             this.d(`窗体动画正在播放中，请稍候`);
@@ -79,30 +88,46 @@ export class UiDialogBase extends UiBase {
         }
     }
 
+    /**
+     * 窗口打开动画开始回调
+     * @param args 参数列表
+     */
     protected onWinOpenAnimStarted(...args: any) {
         this.d(`窗体打开动画开始`, ...args);
         this._winAniFlag.value = true;
     }
 
+    /**
+     * 窗口打开动画结束回调
+     * @param args 参数列表
+     */
     protected onWinOpenAnimFinished(...args: any) {
         this.d(`窗体打开动画结束`, ...args);
         this._winAniFlag.value = false;
     }
 
+    /**
+     * 窗口关闭动画开始回调
+     * @param args 参数列表
+     */
     protected onWinCloseAnimStarted(...args: any) {
         this.d(`窗体关闭动画开始`, ...args, this);
         this._winAniFlag.value = true;
     }
 
+    /**
+     * 窗口关闭动画结束回调
+     * @param args 参数列表
+     */
     protected onWinCloseAnimFinished(...args: any) {
         this.d(`窗体关闭动画结束`, ...args);
         this._winAniFlag.value = false;
         this.close();
     }
 
-    // -- protected 方法结束 --
+    // REGION ENDED <protected>
 
-    // -- public 方法开始 --
+    // REGION START <public>
     public playOpen(...args: any[]) {
         if (this.uiWinAnim) {
             this.uiWinAnim.once(Animation.EventType.PLAY, () => this.onWinOpenAnimStarted(...args), this);
@@ -121,5 +146,5 @@ export class UiDialogBase extends UiBase {
         }
     }
 
-    // -- public 方法结束 --
+    // REGION ENDED <public>
 }

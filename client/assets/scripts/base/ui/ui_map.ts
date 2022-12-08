@@ -1,3 +1,4 @@
+import { setupDefaultBundle } from "./add_ons/ui_helper";
 import { I_UiInfo } from "./ui_base";
 
 /**
@@ -19,3 +20,6 @@ export const UiMap: { [key: string]: I_UiInfo } = {
     // Tip
     ItemUseTip: { path: "prefab/tip/item_use_tip" },
 };
+for (const key in UiMap) {
+    setupDefaultBundle(UiMap[key]);
+}

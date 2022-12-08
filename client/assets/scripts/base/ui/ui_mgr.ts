@@ -1,11 +1,10 @@
-import { _decorator, Component, Canvas } from "cc";
+import { _decorator, Component, Canvas, Prefab } from "cc";
 import { Singletons } from "../singletons";
 import { UiDialogs } from "./dialog/ui_dialogs";
 import { UiLayers } from "./layer/ui_layers";
 import { UiLoadings } from "./loading/ui_loadings";
 import { UiScreens } from "./screen/ui_screens";
 import { UiTips } from "./tip/ui_tips";
-import { E_UI_Type as E_Ui_Type, I_UiInfo, UiBase } from "./ui_base";
 import { UiMap } from "./ui_map";
 const { ccclass, requireComponent, property, disallowMultiple } = _decorator;
 
@@ -40,6 +39,8 @@ export class UiMgr extends Component {
     }
 
     start() {
-        Singletons.ui.screens.open(UiMap.HomeScreen);
+        Singletons.drm.load(UiMap.DefaultLoading.path, Prefab, UiMap.DefaultLoading.bundle).then(() => {
+            Singletons.ui.screens.open(UiMap.HomeScreen);
+        });
     }
 }

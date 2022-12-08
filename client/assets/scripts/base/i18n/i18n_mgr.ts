@@ -1,5 +1,6 @@
 import { sys } from "cc";
 import SingletonBase from "../singleton_base";
+import { setupDefaultBundle } from "../ui/add_ons/ui_helper";
 import { E_i18nType, E_SupportLanguages, getI18nItem, I_i18nContent, I_i18nListener, T_i18nKey } from "./i18n_map";
 
 /**
@@ -154,7 +155,8 @@ export class i18nMgr extends SingletonBase {
         const text = item[this._lang];
         const ret: I_i18nContent = { text: text };
         if (item.type === E_i18nType.Other) {
-            ret.bundle = item.bundle || "resources";
+            setupDefaultBundle(item);
+            ret.bundle = item.bundle;
             item.atlas && (ret.atlas = item.atlas);
         }
         return ret;

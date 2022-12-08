@@ -1,14 +1,14 @@
-import { _decorator, Component, Node } from "cc";
+import { _decorator } from "cc";
 import { UiBase, I_UiInfo } from "../ui_base";
 import { UiStack } from "../ui_stack";
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 /**
  * Url      : db://assets/scripts/base/ui/ui_loadings.ts
  * Author   : reyn
  * Date     : Tue Dec 06 2022 16:13:21 GMT+0800 (中国标准时间)
  * Class    : UiLoadings
- * Desc     :
+ * Desc     : Loading 页面管理
  */
 @ccclass("UiLoadings")
 export class UiLoadings extends UiStack {
