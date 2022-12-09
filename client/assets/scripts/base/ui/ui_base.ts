@@ -158,6 +158,7 @@ export abstract class UiBase extends Gossip {
      */
     public playClose(...args: any[]) {
         Singletons.log.i(`[${this.node.name}] 播放关闭动画: `, args);
+        this.close();
     }
 
     /**

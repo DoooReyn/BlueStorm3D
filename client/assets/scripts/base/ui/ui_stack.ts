@@ -15,17 +15,16 @@ const { ccclass } = _decorator;
  * - 添加 Ui 只能通过 `open` 方法
  * - 移除 Ui 可以使用 `close/closeToIndex/closeToRoot/closeAll/replace`
  * - 移除 Ui 时，实际 Ui 节点并不直接实行删除操作，而是通过发送事件给栈（父亲）节点，让栈节点去处理
- * - 继承时需要注意以下几个问题：
- *      - 是否有栈深度限制，即栈的容纳数量——`isOpenAllowed`
- *          - 当达到栈深度限制时，要怎么处理？——`onOpenWhenReachStatckLimit`
- *      - 打开页面之前（Ui预制体已加载，但节点未添加到渲染树）想要做点什么——`onOpenBefore`
- *      - 打开页面之后（Ui节点已添加到渲染树）想要做点什么——`onOpenAfter`
- *      - 打开页面之前显示 Loading——`onShowLoading`
- *      - 打开页面之后关闭 Loading——`onHideLoading`
- *      - 页面被重复打开时，要怎么处理？
- *          - 如果页面是当前页面，那么——`onOpenCurrent`
- *          - 如果页面是前置页面，那么——`onOpenPrevious`
- *      - 前置页面被关闭时，要怎么处理？——`onClosePrevious`
+ * - 继承时考虑是否需要重写以下几个方法：
+ *      - `isOpenAllowed` —— 是否有栈深度限制，即栈的容纳数量？
+ *      - `onOpenWhenReachStatckLimit` —— 当达到栈深度限制时，要怎么处理？
+ *      - `onOpenBefore` —— 打开页面之前（Ui预制体已加载，但节点未添加到渲染树）可以做点什么？
+ *      - `onOpenAfter` —— 打开页面之后（Ui节点已添加到渲染树）可以做点什么？
+ *      - `onOpenCurrent` —— 当前页面被重复打开时，要怎么处理？
+ *      - `onOpenPrevious` —— 前置页面被重复打开时，要怎么处理？
+ *      - `onClosePrevious` —— 前置页面被关闭时，要怎么处理？
+ *      - `onShowLoading` —— 打开页面之前是否需要显示 Loading？
+ *      - `onHideLoading` —— 打开页面之后是否需要关闭 Loading？
  */
 @ccclass("ui_stack")
 export abstract class UiStack extends Gossip {
@@ -166,8 +165,8 @@ export abstract class UiStack extends Gossip {
      * @virtual 按需重写此方法
      * @param index index 前置 Ui 所在的栈深度
      */
-    protected onClosePrevious(index: number) {
-        this.i(`关闭前置 Ui: ${index}`);
+    protected onClosePrevious(index: number, ...args: any[]) {
+        this.i(`关闭前置 Ui: ${index}`, ...args);
     }
 
     /**
@@ -245,7 +244,7 @@ export abstract class UiStack extends Gossip {
         }
 
         this.closeAll();
-        this.open(info, ...args);
+        return this.open(info, ...args);
     }
 
     /**
@@ -258,7 +257,7 @@ export abstract class UiStack extends Gossip {
         let uiIndex = this.seekUiIndexByUiInfo(info);
         if (uiIndex > -1) {
             if (uiIndex < this.depth - 1) {
-                return this.onClosePrevious(uiIndex);
+                this.onClosePrevious(uiIndex, ...args);
             } else {
                 this.getUi(uiIndex).playClose(...args);
             }

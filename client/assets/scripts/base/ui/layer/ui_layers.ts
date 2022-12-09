@@ -11,6 +11,15 @@ const { ccclass } = _decorator;
  * Date     : Tue Dec 06 2022 16:13:14 GMT+0800 (中国标准时间)
  * Class    : UiLayers
  * Desc     : Layer 页面管理
+ * - `isOpenAllowed` —— 允许存在任意多个页面
+ * - `onOpenWhenReachStatckLimit` —— 因为不会触发此条件，所以不需要处理
+ * - `onOpenBefore` —— 打开页面之前需要关闭所有 Dialog
+ * - `onOpenAfter` —— 暂时不需要处理
+ * - `onOpenCurrent` —— 再次打开页面需要关闭所有 Dialog
+ * - `onOpenPrevious` —— 打开前置页面需要关闭所有 Dialog，并且关闭其上的所有 Layer
+ * - `onClosePrevious` —— 关闭前置页面需要关闭所有 Dialog，并且关闭自己和其上的所有 Layer
+ * - `onShowLoading` —— 打开页面之前需要显示 Loading
+ * - `onHideLoading` —— 打开页面之后需要关闭 Loading
  */
 @ccclass("ui_layers")
 export class UiLayers extends UiStack {
@@ -18,34 +27,25 @@ export class UiLayers extends UiStack {
         return true;
     }
 
-    /**
-     * 打开新的 Screen 之前
-     * - 策略：关闭所有弹窗
-     * @param ui 当前 Ui 组件
-     */
     protected onOpenBefore(ui: UiBase) {
         Singletons.ui.dialogs.closeAll();
     }
 
-    /**
-     * 打开前置 Screen
-     * - 策略：关闭前置 Screen 以上的 Screen
-     * @param index 前置 Screen 所在的栈深度
-     */
     protected async onOpenPrevious<T extends UiBase>(index: number): Promise<T | null> {
         Singletons.ui.dialogs.closeAll();
         this.closeToIndex(index);
         return super.onOpenPrevious<T>(index);
     }
 
-    /**
-     * 已打开的情况下再次打开 Screen
-     * - 策略：关闭所有弹窗
-     * @param index 前置 Screen 所在的栈深度
-     */
     protected async onOpenCurrent<T extends UiBase>(index: number): Promise<T | null> {
         Singletons.ui.dialogs.closeAll();
         return super.onOpenCurrent<T>(index);
+    }
+
+    protected onClosePrevious(index: number, ...args: any[]) {
+        Singletons.ui.dialogs.closeAll();
+        this.closeToIndex(index - 1);
+        super.onClosePrevious(index, ...args);
     }
 
     protected async onShowLoading() {

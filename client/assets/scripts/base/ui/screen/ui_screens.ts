@@ -11,10 +11,15 @@ const { ccclass } = _decorator;
  * Date     : Tue Dec 06 2022 16:12:59 GMT+0800 (中国标准时间)
  * Class    : UiScreens
  * Desc     : Screen 页面管理
- * - 同一时间有且只能有一个页面，当打开另一个页面时，使用新的页面替换旧的页面
- * - 打开页面之前需要显示 Loading，打开之后关闭 Loading
- * - 打开页面之前需要关闭所有 Layer/Dialog
- * - 再次打开页面需要关闭所有 Layer/Dialog
+ * - `isOpenAllowed` —— 同一时间有且只能有一个页面
+ * - `onOpenWhenReachStatckLimit` —— 当打开另一个页面时，使用新的页面替换旧的页面
+ * - `onOpenBefore` —— 打开页面之前需要关闭所有 Layer/Dialog
+ * - `onOpenAfter` —— 暂时不需要处理
+ * - `onOpenCurrent` —— 再次打开页面需要关闭所有 Layer/Dialog
+ * - `onOpenPrevious` —— 因为不存在前置页面，所以不需要处理
+ * - `onClosePrevious` —— 因为不存在前置页面，所以不需要处理
+ * - `onShowLoading` —— 打开页面之前需要显示 Loading
+ * - `onHideLoading` —— 打开页面之后需要关闭 Loading
  */
 @ccclass("UiScreens")
 export class UiScreens extends UiStack {
