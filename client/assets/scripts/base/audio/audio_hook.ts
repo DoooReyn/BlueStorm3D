@@ -22,27 +22,61 @@ type I_AudioCacheInfo = {
  */
 @ccclass("audio_hook")
 export class AudioHook extends Gossip {
+    // REGION START <Member Variables>
+
     /**
      * 音频缓存信息映射表
      */
     private _map: Map<string, I_AudioCacheInfo> = new Map();
 
-    onEnable() {
+    // REGION ENDED <Member Variables>
+
+    // REGION START <protected>
+
+    protected onEnable() {
         game.on(Game.EVENT_HIDE, this.pause, this);
         game.on(Game.EVENT_SHOW, this.resume, this);
+        this.node.on(AudioSource.EventType.STARTED, this.onAudioPlayStarted, this);
+        this.node.on(AudioSource.EventType.ENDED, this.onAudioPlayFinished, this);
     }
 
-    onDisable() {
+    protected onDisable() {
         game.off(Game.EVENT_HIDE, this.pause, this);
         game.off(Game.EVENT_SHOW, this.resume, this);
+        this.node.off(AudioSource.EventType.STARTED, this.onAudioPlayStarted, this);
+        this.node.off(AudioSource.EventType.ENDED, this.onAudioPlayFinished, this);
     }
 
     /**
-     * 音频组件
+     * 音频开始播放回调
+     * - 需要修改引擎 `engine\cocos\audio\audio-source.ts`
+     * @param _ 当前组件
+     * @param clipName 音频名称
+     */
+    protected onAudioPlayStarted(_: AudioHook, clipName: string) {
+        this.i("onAudioPlayStarted", clipName);
+    }
+
+    /**
+     * 音频结束播放回调
+     * - 需要修改引擎 `engine\cocos\audio\audio-source.ts`
+     * @param _ 当前组件
+     * @param clipName 音频名称
+     */
+    protected onAudioPlayFinished(_: AudioHook, clipName: string) {
+        this.i("onAudioPlayFinished", clipName);
+    }
+
+    /**
+     * 获得音频组件
      */
     protected get source() {
         return this.getComponent(AudioSource) || this.addComponent(AudioSource);
     }
+
+    // REGION ENDED <protected>
+
+    // REGION START <public>
 
     /**
      * 获取音量
@@ -191,4 +225,6 @@ export class AudioHook extends Gossip {
         this._map.forEach((_, k) => Singletons.drm.decRef(k));
         this._map.clear();
     }
+
+    // REGION START <public>
 }
