@@ -39,24 +39,41 @@ export class UiCmmButton extends Button {
     @property({ displayName: "长按触发事件回调", type: [EventHandler] })
     longPressTriggerEvents: EventHandler[] = [];
 
+    /**
+     * 长按是否生效
+     */
     private _isLongPressed: boolean = false;
+
+    private _audio: AudioInfo = AudioMap.click;
 
     // REGION ENDED <Member Variables>
 
     // REGION START <private>
 
+    /**
+     * 开始长按等待计时
+     */
     private _startLongPressCounter() {
         this.schedule(this._onLongPressCounterReached, this.longPressWaitTime);
     }
 
+    /**
+     * 停止长按等待计时
+     */
     private _stopLongPressCounter() {
         this.unschedule(this._onLongPressCounterReached);
     }
 
+    /**
+     * 开始长按触发计时
+     */
     private _startLongPressTriggeredCounter() {
         this.schedule(this._onLongPressCounterTriggered, this.longPressTriggerInterval, macro.REPEAT_FOREVER);
     }
 
+    /**
+     * 停止长按触发计时
+     */
     private _stopLongPressTriggeredCounter() {
         this.unschedule(this._onLongPressCounterTriggered);
         if (this._isLongPressed) {
@@ -66,6 +83,9 @@ export class UiCmmButton extends Button {
         }
     }
 
+    /**
+     * 长按等待计时触发回调
+     */
     private _onLongPressCounterReached() {
         this._stopLongPressCounter();
         this._startLongPressTriggeredCounter();
@@ -74,6 +94,9 @@ export class UiCmmButton extends Button {
         this.node.emit(E_UiButtonEvent.LONG_PRESS_STARTED, this);
     }
 
+    /**
+     * 长按触发计时触发回调
+     */
     private _onLongPressCounterTriggered() {
         this.playAudio();
         this.node.emit(E_UiButtonEvent.LONG_PRESS_TRIGGERED, this);
@@ -84,17 +107,24 @@ export class UiCmmButton extends Button {
 
     // REGION START <protected>
 
+    /**
+     * 按钮状态切换回调
+     */
     protected onStateChanged(state: E_UiButtonState) {
         if (this.longPressEnabled) {
             if (state === E_UiButtonState.PRESSED) {
                 this._startLongPressCounter();
-            } else {
+            } else if (state !== E_UiButtonState.HOVER) {
                 this._stopLongPressCounter();
                 this._stopLongPressTriggeredCounter();
             }
         }
     }
 
+    /**
+     * 单次点击回调
+     * @param _
+     */
     protected onClickedOnce(_: Button) {
         if (this.preventQuickClickEnabled) {
             this.interactable = false;
@@ -125,16 +155,37 @@ export class UiCmmButton extends Button {
         this.setClickedOnceEnabled(false);
     }
 
+    /**
+     * 播放音频
+     * @param audio 音频信息
+     */
     public playAudio(audio?: AudioInfo) {
-        this.audioEnabled && Singletons.audio.play(audio || AudioMap.click);
+        audio && this.setAudioInfo(audio);
+        this.audioEnabled && Singletons.audio.play(this._audio);
     }
 
+    /**
+     * 设置音频信息
+     * @param audio 音频信息
+     */
+    public setAudioInfo(audio: AudioInfo) {
+        this._audio = audio;
+    }
+
+    /**
+     * 开启/关闭状态切换监听
+     * @param e 开启
+     */
     public setStateChangedEnabled(e: boolean) {
         e
             ? this.node.on(E_UiButtonEvent.STATE_CHANGED, this.onStateChanged, this)
             : this.node.off(E_UiButtonEvent.STATE_CHANGED, this.onStateChanged, this);
     }
 
+    /**
+     * 开启/关闭单次点击监听
+     * @param e 开启
+     */
     public setClickedOnceEnabled(e: boolean) {
         e
             ? this.node.on(E_UiButtonEvent.CLICK, this.onClickedOnce, this)

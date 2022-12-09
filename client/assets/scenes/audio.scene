@@ -2054,7 +2054,7 @@
     "audioEnabled": true,
     "preventQuickClickEnabled": true,
     "preventQuickClickInterval": 0.5,
-    "longPressEnabled": true,
+    "longPressEnabled": false,
     "longPressWaitTime": 1,
     "longPressTriggerInterval": 0.2,
     "longPressTriggerEvents": [],
