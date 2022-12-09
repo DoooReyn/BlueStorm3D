@@ -51,6 +51,8 @@ export function addClickHandler(
  * @param info 资源信息
  */
 export function setupDefaultBundle(info: { [key: string]: any; bundle?: string }) {
-    info.bundle = info.bundle || "resources";
+    if (!Object.isFrozen(info)) {
+        info.bundle = info.bundle || "resources";
+    }
     return info;
 }

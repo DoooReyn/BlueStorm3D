@@ -77,7 +77,7 @@ export interface I_AudioInfo extends I_ResInfo {
 export class AudioInfo extends ResInfo<I_AudioInfo> {
     protected constructor(info: I_AudioInfo) {
         info.form = info.form || "effect";
-        info.volume = clamp01(info.volume);
+        info.volume = clamp01(info.volume || 1.0);
         info.loop = info.loop || false;
         info.persist = info.persist || false;
         info.once = info.once || false;

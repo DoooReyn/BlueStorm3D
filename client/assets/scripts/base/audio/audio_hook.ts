@@ -159,7 +159,7 @@ export class AudioHook extends Gossip {
                     audio_info && (audio_info.status = AudioSource.AudioState.PLAYING);
                 },
                 onStop(ref) {
-                    self.d(`${audio.path}已停止`, audio_info);
+                    self.d(`${audio.path} 已停止`, audio_info);
                     audio_info && (audio_info.status = AudioSource.AudioState.STOPPED);
                     audio_info && Singletons.timer.delTimer(audio_info.timer);
                     Singletons.drm.decRef(uuid);

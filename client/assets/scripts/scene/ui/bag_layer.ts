@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, Button } from "cc";
 import { Singletons } from "../../base/singletons";
-import { E_UIButtonEventType } from "../../base/ui/add_ons/ui_button_hack";
+import { E_UiButtonEvent } from "../../base/ui/add_ons/ui_button_hack";
 import { UiLayerBase } from "../../base/ui/layer/ui_layer_base";
 import { UiMap } from "../../base/ui/ui_map";
 const { ccclass, property } = _decorator;
@@ -20,14 +20,14 @@ export class BagLayer extends UiLayerBase {
     protected onEnable() {
         // 这里为了快速展示，把道具点击监听放在这里，实际上应该在道具预制体上制作
         this.uiFrameItem.children.forEach((v) => {
-            v.on(E_UIButtonEventType.CLICK, this._onItemClicked, this);
+            v.on(E_UiButtonEvent.CLICK, this._onItemClicked, this);
         });
         super.onEnable && super.onEnable();
     }
 
     protected onDisable() {
         this.uiFrameItem.children.forEach((v) => {
-            v.off(E_UIButtonEventType.CLICK, this._onItemClicked, this);
+            v.off(E_UiButtonEvent.CLICK, this._onItemClicked, this);
         });
         super.onDisable && super.onDisable();
     }

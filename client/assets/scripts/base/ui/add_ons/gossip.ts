@@ -23,16 +23,16 @@ export class Gossip extends Component {
      * @param args 参数列表
      */
     protected d(...args: any[]) {
-        this.debuggable.value && Singletons.log.d(this.name, ...args);
+        this.debuggable.value && Singletons.log.d(`[${this.name}]`, ...args);
     }
     protected i(...args: any[]) {
-        this.debuggable.value && Singletons.log.i(this.name, ...args);
+        this.debuggable.value && Singletons.log.i(`[${this.name}]`, ...args);
     }
     protected w(...args: any[]) {
-        this.debuggable.value && Singletons.log.w(this.name, ...args);
+        this.debuggable.value && Singletons.log.w(`[${this.name}]`, ...args);
     }
     protected e(...args: any[]) {
-        this.debuggable.value && Singletons.log.e(this.name, ...args);
+        this.debuggable.value && Singletons.log.e(`[${this.name}]`, ...args);
     }
 
     /**
