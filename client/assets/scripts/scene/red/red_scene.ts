@@ -9,9 +9,9 @@ const { ccclass, property } = _decorator;
  * Author   : reyn
  * Date     : Wed Nov 30 2022 23:16:29 GMT+0800 (中国标准时间)
  * Class    : RedScene
- * Desc     : 红点测试
+ * Desc     : 红点测试场景
  */
-@ccclass("RedScene")
+@ccclass("red_scene")
 export class RedScene extends Component {
     @property(RedDotPure)
     menu: RedDotPure = null;

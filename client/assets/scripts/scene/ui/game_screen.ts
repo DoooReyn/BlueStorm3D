@@ -9,9 +9,9 @@ const { ccclass } = _decorator;
  * Author   : reyn
  * Date     : Tue Dec 06 2022 20:36:01 GMT+0800 (中国标准时间)
  * Class    : GameScreen
- * Desc     :
+ * Desc     : 游戏页面
  */
-@ccclass("GameScreen")
+@ccclass("game_screen")
 export class GameScreen extends UiScreenBase {
     /************************************************************
      * 基础事件

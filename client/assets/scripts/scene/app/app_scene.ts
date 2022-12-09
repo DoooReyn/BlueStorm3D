@@ -8,9 +8,9 @@ const { ccclass } = _decorator;
  * Author   : reyn
  * Date     : Tue Nov 29 2022 21:34:28 GMT+0800 (中国标准时间)
  * Class    : AppScene
- * Desc     :
+ * Desc     : App 场景
  */
-@ccclass("AppScene")
+@ccclass("app_scene")
 export class AppScene extends Gossip {
     /************************************************************
      * 基础事件

@@ -59,3 +59,14 @@ export function runInSandbox(handler: { onExcute: Function; onError?: T_ErrorHan
         typeof handler.onFinal === "function" && handler.onFinal();
     }
 }
+
+/**
+ * 关闭 DOM 报错节点
+ * - 烦死了这个鬼东西
+ */
+export function disableDomErrorNode() {
+    const node = document.querySelector("#error");
+    if (node) {
+        node.parentElement.removeChild(node);
+    }
+}

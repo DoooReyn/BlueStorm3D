@@ -8,9 +8,9 @@ const { ccclass } = _decorator;
  * Author   : reyn
  * Date     : Sun Dec 04 2022 16:57:06 GMT+0800 (中国标准时间)
  * Class    : AudioScene
- * Desc     : 音频播放测试
+ * Desc     : 音频播放测试场景
  */
-@ccclass("AudioScene")
+@ccclass("audio_scene")
 export class AudioScene extends Component {
     /************************************************************
      * 基础事件

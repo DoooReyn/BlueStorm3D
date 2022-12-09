@@ -12,7 +12,7 @@ const { ccclass, property } = _decorator;
  * Class    : BagLayer
  * Desc     : 背包页面
  */
-@ccclass("BagLayer")
+@ccclass("bag_layer")
 export class BagLayer extends UiLayerBase {
     @property({ displayName: "道具面板", type: Node })
     uiFrameItem: Node = null;

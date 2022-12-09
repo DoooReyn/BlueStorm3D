@@ -9,9 +9,9 @@ const { ccclass } = _decorator;
  * Author   : reyn
  * Date     : Tue Dec 06 2022 20:36:01 GMT+0800 (中国标准时间)
  * Class    : HomeScreen
- * Desc     :
+ * Desc     : 主页面
  */
-@ccclass("HomeScreen")
+@ccclass("home_screen")
 export class HomeScreen extends UiScreenBase {
     /************************************************************
      * 基础事件

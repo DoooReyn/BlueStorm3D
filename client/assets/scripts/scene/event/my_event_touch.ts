@@ -14,11 +14,11 @@ class MyEvent extends Event {
 }
 
 /**
- * Url      : db://assets/scripts/scene/event/event_touch.ts
+ * Url      : db://assets/scripts/scene/event/my_event_touch.ts
  * Author   : reyn
  * Date     : Wed Nov 30 2022 14:23:35 GMT+0800 (中国标准时间)
  * Class    : EventTouch
- * Desc     : 触摸事件测试
+ * Desc     : 触摸事件测试场景
  */
 
 enum E_TouchType {
@@ -27,7 +27,7 @@ enum E_TouchType {
     SwallowAllowedWithoutRectLimited,
 }
 
-@ccclass("MyEventTouch")
+@ccclass("my_event_touch")
 export class MyEventTouch extends Gossip {
     private _touchType: E_TouchType = E_TouchType.SwallowForbidden;
     private _color: Color = null;

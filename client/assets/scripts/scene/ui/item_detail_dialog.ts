@@ -11,9 +11,10 @@ const { ccclass, property } = _decorator;
  * Url      : db://assets/scripts/scene/ui/item_detail_dialog.ts
  * Author   : reyn
  * Date     : Wed Dec 07 2022 15:23:34 GMT+0800 (中国标准时间)
- * Desc     :
+ * Class    : ItemDetailDialog
+ * Desc     : 道具详情弹窗
  */
-@ccclass("ItemDetailDialog")
+@ccclass("item_detail_dialog")
 export class ItemDetailDialog extends UiDialogBase {
     @property({ displayName: "名称", type: Label })
     uiLabName: Label = null;

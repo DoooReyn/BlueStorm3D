@@ -8,9 +8,9 @@ const { ccclass, property } = _decorator;
  * Author   : reyn
  * Date     : Wed Nov 30 2022 13:45:55 GMT+0800 (中国标准时间)
  * Class    : EventScene
- * Desc     : 事件管理测试
+ * Desc     : 事件管理测试场景
  */
-@ccclass("EventScene")
+@ccclass("event_scene")
 export class EventScene extends Component {
     @property(MyEventTouch)
     red: MyEventTouch = null;

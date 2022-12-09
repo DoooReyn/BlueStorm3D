@@ -8,9 +8,9 @@ const { ccclass, property } = _decorator;
  * Author   : reyn
  * Date     : Thu Dec 01 2022 22:09:16 GMT+0800 (中国标准时间)
  * Class    : TimerScene
- * Desc     : 定时器测试
+ * Desc     : 定时器测试场景
  */
-@ccclass("TimerScene")
+@ccclass("timer_scene")
 export class TimerScene extends Component {
     @property(Button)
     delayBtn: Button = null;

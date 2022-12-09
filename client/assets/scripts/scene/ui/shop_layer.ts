@@ -9,9 +9,10 @@ const { ccclass, property } = _decorator;
  * Url      : db://assets/scripts/scene/ui/shop_layer.ts
  * Author   : reyn
  * Date     : Wed Dec 07 2022 15:23:18 GMT+0800 (中国标准时间)
- * Desc     :
+ * Class    : ShopLayer
+ * Desc     : 商店页面
  */
-@ccclass("ShopLayer")
+@ccclass("shop_layer")
 export class ShopLayer extends UiLayerBase {
     @property({ displayName: "道具面板", type: Node })
     uiFrameItem: Node = null;

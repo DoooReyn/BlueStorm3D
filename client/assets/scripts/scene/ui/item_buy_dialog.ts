@@ -11,7 +11,8 @@ const { ccclass, property } = _decorator;
  * Url      : db://assets/scripts/scene/ui/item_buy_dialog.ts
  * Author   : reyn
  * Date     : Wed Dec 07 2022 15:23:34 GMT+0800 (中国标准时间)
- * Desc     :
+ * Class    ：ItemBuyDialog
+ * Desc     : 购买商品弹窗
  */
 @ccclass("item_buy_dialog")
 export class ItemBuyDialog extends UiDialogBase {
