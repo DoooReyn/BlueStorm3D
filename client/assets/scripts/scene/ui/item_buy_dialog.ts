@@ -13,7 +13,7 @@ const { ccclass, property } = _decorator;
  * Date     : Wed Dec 07 2022 15:23:34 GMT+0800 (中国标准时间)
  * Desc     :
  */
-@ccclass("ItemBuyDialog")
+@ccclass("item_buy_dialog")
 export class ItemBuyDialog extends UiDialogBase {
     @property({ displayName: "名称", type: Label })
     uiLabName: Label = null;

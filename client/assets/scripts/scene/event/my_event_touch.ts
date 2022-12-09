@@ -83,7 +83,7 @@ export class MyEventTouch extends Gossip {
     }
 
     private _setClicked() {
-        this.i(`${this.node.name} Clicked`);
+        this.i(`Clicked`);
         this._setColor(Color.WHITE);
         // this.node.dispatchEvent(new MyEvent("clicked", true, this.node.name));
     }
@@ -97,6 +97,6 @@ export class MyEventTouch extends Gossip {
     }
 
     private _onClicked(e: MyEvent) {
-        this.i(`${this.node.name} Clicked`, `current: ${e.currentTarget.name}`, `from: ${e.target.name}`);
+        this.i(`Clicked`, `current: ${e.currentTarget.name}`, `from: ${e.target.name}`);
     }
 }

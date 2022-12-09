@@ -12,8 +12,20 @@ const { ccclass } = _decorator;
  * Class    : UiStack
  * Desc     : Ui栈
  * - 规定 Ui 栈只能按顺序添加
- * - 可以使用 `closeToRoot/closeAll/replace` 来清理栈
+ * - 添加 Ui 只能通过 `open` 方法
+ * - 移除 Ui 可以使用 `close/closeToIndex/closeToRoot/closeAll/replace`
  * - 移除 Ui 时，实际 Ui 节点并不直接实行删除操作，而是通过发送事件给栈（父亲）节点，让栈节点去处理
+ * - 继承时需要注意以下几个问题：
+ *      - 是否有栈深度限制，即栈的容纳数量——`isOpenAllowed`
+ *          - 当达到栈深度限制时，要怎么处理？——`onOpenWhenReachStatckLimit`
+ *      - 打开页面之前（Ui预制体已加载，但节点未添加到渲染树）想要做点什么——`onOpenBefore`
+ *      - 打开页面之后（Ui节点已添加到渲染树）想要做点什么——`onOpenAfter`
+ *      - 打开页面之前显示 Loading——`onShowLoading`
+ *      - 打开页面之后关闭 Loading——`onHideLoading`
+ *      - 页面被重复打开时，要怎么处理？
+ *          - 如果页面是当前页面，那么——`onOpenCurrent`
+ *          - 如果页面是前置页面，那么——`onOpenPrevious`
+ *      - 前置页面被关闭时，要怎么处理？——`onClosePrevious`
  */
 @ccclass("ui_stack")
 export abstract class UiStack extends Gossip {
@@ -121,7 +133,7 @@ export abstract class UiStack extends Gossip {
      * @param args 参数列表
      * @virtual 按需重写此方法
      */
-    protected async onOpenLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
+    protected async onOpenWhenReachStatckLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
         this.w(`打开Ui失败,已达到栈极限: ${info.bundle}/${info.path}`);
         return Promise.resolve(null);
     }
@@ -129,21 +141,22 @@ export abstract class UiStack extends Gossip {
     /**
      * 打开前置 Ui
      * @virtual 按需重写此方法
-     * @param index index 索引
+     * @param index index 前置 Ui 所在的栈深度
      */
-    protected async onOpenOther<T extends UiBase>(index: number): Promise<T | null> {
-        this.i(`打开前置 Ui: ${index}`, this.getUi(index));
-        return Promise.resolve(null);
+    protected async onOpenPrevious<T extends UiBase>(index: number): Promise<T | null> {
+        let ui = this.getUi(index) as T;
+        this.i(`打开前置 Ui: ${index}`);
+        return Promise.resolve(ui);
     }
 
     /**
-     * 再次打开 Ui
+     * 已打开的情况下再次打开 Ui
      * @virtual 按需重写此方法
-     * @param index index 索引
+     * @param index index 当前 Ui 所在的栈深度
      */
-    protected async onOpenAgain<T extends UiBase>(index: number): Promise<T | null> {
+    protected async onOpenCurrent<T extends UiBase>(index: number): Promise<T | null> {
         let ui = this.getUi(index) as T;
-        this.i(`再次打开 Ui: ${index}`, ui);
+        this.i(`再次打开 Ui: ${index}`);
         ui.node.emit(E_Ui_Event.OPEN_AGAIN);
         return Promise.resolve(ui);
     }
@@ -151,10 +164,10 @@ export abstract class UiStack extends Gossip {
     /**
      * 关闭前置 Ui
      * @virtual 按需重写此方法
-     * @param index index 索引
+     * @param index index 前置 Ui 所在的栈深度
      */
-    protected onCloseOther(index: number) {
-        this.i(`关闭前置 Ui: ${index}`, this.getUi(index));
+    protected onClosePrevious(index: number) {
+        this.i(`关闭前置 Ui: ${index}`);
     }
 
     /**
@@ -187,14 +200,14 @@ export abstract class UiStack extends Gossip {
         let uiIndex = this.seekUiIndexByUiInfo(info);
         if (uiIndex > -1) {
             if (uiIndex < this.depth - 1) {
-                return this.onOpenOther<T>(uiIndex);
+                return this.onOpenPrevious<T>(uiIndex);
             } else {
-                return this.onOpenAgain<T>(uiIndex);
+                return this.onOpenCurrent<T>(uiIndex);
             }
         }
 
         if (!this.isOpenAllowed()) {
-            return this.onOpenLimit<T>(info, ...args);
+            return this.onOpenWhenReachStatckLimit<T>(info, ...args);
         }
 
         this.onShowLoading();
@@ -207,7 +220,7 @@ export abstract class UiStack extends Gossip {
         this.onHideLoading();
 
         let node = Singletons.drm.useNode(prefab);
-        let ui = node.getComponent("UiBase") as T;
+        let ui = node.getComponent("ui_base") as T;
         ui.persist && prefab.refCount <= 1 && Singletons.drm.addRef(prefab);
         ui.setUiInfo(info);
         this.onOpenBefore(ui);
@@ -245,7 +258,7 @@ export abstract class UiStack extends Gossip {
         let uiIndex = this.seekUiIndexByUiInfo(info);
         if (uiIndex > -1) {
             if (uiIndex < this.depth - 1) {
-                return this.onCloseOther(uiIndex);
+                return this.onClosePrevious(uiIndex);
             } else {
                 this.getUi(uiIndex).playClose(...args);
             }
@@ -264,15 +277,23 @@ export abstract class UiStack extends Gossip {
     }
 
     /**
-     * 关闭除栈底页面外的所有页面
+     * 依次倒序关闭页面，直到到达指定栈深度
+     * @param index 指定深度
+     */
+    public closeToIndex(index: number) {
+        index = index | 0;
+        if (index >= 0 && index <= this.depth - 1) {
+            for (let i = this.depth - 1; i > index; i--) {
+                this.removeUi(this.getUi(i));
+            }
+        }
+    }
+
+    /**
+     * 依次倒序关闭除栈底页面外的所有页面
      */
     public closeToRoot() {
-        for (let i = this.depth - 1; i > 0; i--) {
-            this.removeUi(this.getUi(i));
-        }
-        if (this.depth >= 1) {
-            this._stack.length = 1;
-        }
+        this.closeToIndex(0);
     }
 
     /**
@@ -282,7 +303,6 @@ export abstract class UiStack extends Gossip {
         for (let i = this.depth - 1; i >= 0; i--) {
             this.removeUi(this.getUi(i));
         }
-        this._stack.length = 0;
     }
 
     // REGION ENDED <public>

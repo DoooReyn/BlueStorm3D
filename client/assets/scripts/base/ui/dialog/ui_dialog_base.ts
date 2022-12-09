@@ -53,7 +53,7 @@ export class UiDialogBase extends UiDisableTouch {
 
     protected onLoad() {
         super.onLoad && super.onLoad();
-        addClickHandler(this.uiBtnBack, this.node, "UiDialogBase", "onCloseBtnTriggered");
+        addClickHandler(this.uiBtnBack, this.node, "ui_base", "onCloseBtnTriggered");
         if (this.uiWinAnim) {
             this.uiOpenAnimClip && this.uiWinAnim.addClip(this.uiOpenAnimClip);
             this.uiCloseAnimClip && this.uiWinAnim.addClip(this.uiCloseAnimClip);

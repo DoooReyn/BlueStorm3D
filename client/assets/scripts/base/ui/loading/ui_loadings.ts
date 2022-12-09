@@ -17,7 +17,7 @@ export class UiLoadings extends UiStack {
         return this.depth === 0;
     }
 
-    protected async onOpenLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
+    protected async onOpenWhenReachStatckLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
         return this.replace<T>(info, ...args);
     }
 }

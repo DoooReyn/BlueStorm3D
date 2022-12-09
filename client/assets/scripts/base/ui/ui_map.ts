@@ -23,3 +23,5 @@ export const UiMap: { [key: string]: I_UiInfo } = {
 for (const key in UiMap) {
     setupDefaultBundle(UiMap[key]);
 }
+
+(<any>window).UiMap = UiMap;

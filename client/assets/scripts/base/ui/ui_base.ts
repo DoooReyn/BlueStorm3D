@@ -103,6 +103,26 @@ export abstract class UiBase extends Gossip {
      */
     protected onOpenAgain() {}
 
+    /**
+     * 点击关闭按钮触发关闭
+     * @virtual 按需重写此方法
+     * @param _ 点击事件
+     * @param type 携带参数
+     */
+    protected onCloseBtnTriggered(_: EventTouch, type: string) {
+        this.playClose({ from: "Button.Close", type });
+    }
+
+    /**
+     * 关闭 Ui
+     * - 不允许在外部调用
+     */
+    protected close(): void {
+        this._closeHandlers.forEach((r) => runInSandbox({ onExcute: r }));
+        this._closeHandlers.length = 0;
+        this.node.parent.emit(E_Ui_Event.REMOVE, this);
+    }
+
     // REGION ENDED <protected>
 
     // REGION START <public>
@@ -125,15 +145,6 @@ export abstract class UiBase extends Gossip {
     }
 
     /**
-     * 点击关闭按钮触发关闭
-     * @param _ 点击事件
-     * @param type 携带参数
-     */
-    public onCloseBtnTriggered(_: EventTouch, type: string) {
-        this.playClose({ from: "Button.Close", type });
-    }
-
-    /**
      * 播放打开动画
      * @param args 参数列表
      */
@@ -147,7 +158,6 @@ export abstract class UiBase extends Gossip {
      */
     public playClose(...args: any[]) {
         Singletons.log.i(`[${this.node.name}] 播放关闭动画: `, args);
-        this.close();
     }
 
     /**
@@ -158,15 +168,6 @@ export abstract class UiBase extends Gossip {
         if (this._closeHandlers.indexOf(f) === -1) {
             this._closeHandlers.push(f);
         }
-    }
-
-    /**
-     * 关闭 Ui
-     */
-    public close(): void {
-        this._closeHandlers.forEach((r) => runInSandbox({ onExcute: r }));
-        this._closeHandlers.length = 0;
-        this.node.parent.emit(E_Ui_Event.REMOVE, this);
     }
 
     // REGION ENDED <protected>

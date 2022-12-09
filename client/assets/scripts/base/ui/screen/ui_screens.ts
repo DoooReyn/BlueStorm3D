@@ -11,7 +11,10 @@ const { ccclass } = _decorator;
  * Date     : Tue Dec 06 2022 16:12:59 GMT+0800 (中国标准时间)
  * Class    : UiScreens
  * Desc     : Screen 页面管理
- * - 同一时间有且只能有一个页面
+ * - 同一时间有且只能有一个页面，当打开另一个页面时，使用新的页面替换旧的页面
+ * - 打开页面之前需要显示 Loading，打开之后关闭 Loading
+ * - 打开页面之前需要关闭所有 Layer/Dialog
+ * - 再次打开页面需要关闭所有 Layer/Dialog
  */
 @ccclass("UiScreens")
 export class UiScreens extends UiStack {
@@ -19,18 +22,20 @@ export class UiScreens extends UiStack {
         return this.depth === 0;
     }
 
-    protected onOpenLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]) {
+    protected onOpenWhenReachStatckLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]) {
         return this.replace<T>(info, ...args);
     }
 
-    /**
-     * 打开新的 Screen 之前
-     * - 策略：关闭所有二级以上页面、弹窗
-     * @param ui 当前 Ui 组件
-     */
     protected onOpenBefore(ui: UiBase) {
         Singletons.ui.layers.closeAll();
         Singletons.ui.dialogs.closeAll();
+        super.onOpenBefore(ui);
+    }
+
+    protected onOpenCurrent<T extends UiBase>(index: number): Promise<T | null> {
+        Singletons.ui.layers.closeAll();
+        Singletons.ui.dialogs.closeAll();
+        return super.onOpenCurrent<T>(index);
     }
 
     protected async onShowLoading() {

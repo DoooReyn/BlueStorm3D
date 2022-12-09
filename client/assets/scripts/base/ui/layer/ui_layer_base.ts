@@ -31,7 +31,7 @@ export class UiLayerBase extends UiDisableTouch {
 
     protected onLoad() {
         super.onLoad && super.onLoad();
-        addClickHandler(this.uiBtnBack, this.node, "UiLayerBase", "onCloseBtnTriggered");
+        addClickHandler(this.uiBtnBack, this.node, "ui_layer_base", "onCloseBtnTriggered");
     }
 
     // REGION ENDED <protected>
