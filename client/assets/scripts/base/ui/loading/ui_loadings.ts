@@ -1,5 +1,6 @@
 import { _decorator } from "cc";
-import { UiBase, I_UiInfo } from "../ui_base";
+import { I_UiInfo } from "../../res/res_info";
+import { UiBase } from "../ui_base";
 import { UiStack } from "../ui_stack";
 const { ccclass } = _decorator;
 

@@ -25,7 +25,7 @@ export class BuyConfirmDialog extends UiDialogBase {
         const conf = ItemDetailConfig[itemId];
         this.i(`打开道具: ${conf.id}`);
         this.uiLabName.string = conf.name;
-        Singletons.drm.load<SpriteFrame>(`item/${itemId}`, SpriteFrame).then((frame) => {
+        Singletons.drm.load<SpriteFrame>({ path: `item/${itemId}` }, SpriteFrame).then((frame) => {
             frame && Singletons.drm.replace(this.uiSpriteIcon, frame);
             this.uiSpriteIcon.spriteFrame = frame;
         });

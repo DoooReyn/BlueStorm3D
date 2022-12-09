@@ -1,7 +1,8 @@
 import { _decorator, AudioSource, AudioClip, clamp01, isValid, game, Game } from "cc";
+import { I_AudioInfo } from "../res/res_info";
 import { Singletons } from "../singletons";
 import { Gossip } from "../ui/add_ons/gossip";
-import { I_AudioHandler, I_AudioInfo } from "./audio_info";
+import { I_AudioHandler } from "./audio_info";
 const { ccclass } = _decorator;
 
 /**

@@ -39,7 +39,7 @@ export class ItemDetailDialog extends UiDialogBase {
             this.uiLabName.string = conf.name;
             this.uiLabDesc.string = conf.desc;
             this.uiLabNum.string = randomInteger(1, 10).toString();
-            Singletons.drm.load<SpriteFrame>(`item/${itemInfo.id}`, SpriteFrame).then((frame) => {
+            Singletons.drm.load<SpriteFrame>({ path: `item/${itemInfo.id}` }, SpriteFrame).then((frame) => {
                 frame && Singletons.drm.replace(this.uiSpriteIcon, frame);
                 this.uiSpriteIcon.spriteFrame = frame;
             });

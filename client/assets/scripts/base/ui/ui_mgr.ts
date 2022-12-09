@@ -39,7 +39,7 @@ export class UiMgr extends Component {
     }
 
     start() {
-        Singletons.drm.load(UiMap.DefaultLoading.path, Prefab, UiMap.DefaultLoading.bundle).then(() => {
+        Singletons.drm.loadBy(UiMap.DefaultLoading).then(() => {
             Singletons.ui.screens.open(UiMap.HomeScreen);
         });
     }

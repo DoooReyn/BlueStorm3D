@@ -1,6 +1,7 @@
 import { _decorator } from "cc";
+import { I_UiInfo } from "../../res/res_info";
 import { Singletons } from "../../singletons";
-import { I_UiInfo, UiBase } from "../ui_base";
+import { UiBase } from "../ui_base";
 import { UiMap } from "../ui_map";
 import { UiStack } from "../ui_stack";
 const { ccclass } = _decorator;

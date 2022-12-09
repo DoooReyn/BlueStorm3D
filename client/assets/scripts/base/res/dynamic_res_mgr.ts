@@ -22,6 +22,8 @@ import { isString } from "../func/types";
 import { T_LoadHandler } from "../func/utils";
 import { Singletons } from "../singletons";
 import SingletonBase from "../singleton_base";
+import { setupDefaultBundle } from "../ui/add_ons/ui_helper";
+import { I_ResInfo, ResInfo } from "./res_info";
 
 /**
  * 缓存资源
@@ -209,22 +211,27 @@ export class DynamicResMgr extends SingletonBase {
 
     /**
      * 加载单个资源
-     * @param path 资源路径
+     * @param info 资源信息
      * @param type 资源类型
-     * @param bundleNameOrUrl 资源包名称或地址
      * @returns
      */
-    public async load<T extends Asset>(
-        path: string,
-        type: typeof Asset,
-        bundleNameOrUrl: string = "resources"
-    ): Promise<T | null> {
-        let bundle = await this.loadBundle(bundleNameOrUrl);
+    public async load<T extends Asset>(info: I_ResInfo, type: typeof Asset): Promise<T | null> {
+        setupDefaultBundle(info);
+        let bundle = await this.loadBundle(info.bundle);
         if (!bundle) {
-            Singletons.log.e(`[DRM] cant find bundle: ${bundleNameOrUrl}`);
+            Singletons.log.e(`[DRM] cant find bundle: ${info.bundle}`);
             return Promise.resolve(null);
         }
-        return await this._loadAsset<T>(bundle, path, type);
+        return await this._loadAsset<T>(bundle, info.path, type);
+    }
+
+    /**
+     * 加载单个资源
+     * @param info 资源信息
+     * @returns
+     */
+    public async loadBy<T extends Asset, K extends I_ResInfo>(info: ResInfo<K>): Promise<T | null> {
+        return await this.load<T>(info.raw, info.type);
     }
 
     /**

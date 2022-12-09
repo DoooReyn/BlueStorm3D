@@ -1,6 +1,7 @@
 import { _decorator, Sprite, SpriteFrame } from "cc";
 import { Singletons } from "../singletons";
 import { Gossip } from "../ui/add_ons/gossip";
+import { I_ResInfo } from "./res_info";
 const { ccclass, requireComponent } = _decorator;
 
 /**
@@ -17,8 +18,8 @@ export class ResSprite extends Gossip {
         return this.setupComponent(Sprite);
     }
 
-    public setSpriteFrame(path: string, bundle?: string): void {
+    public setSpriteFrame(resInfo: I_ResInfo): void {
         const image = this.sprite;
-        Singletons.drm.load(path, SpriteFrame, bundle).then((frame) => frame && Singletons.drm.replace(image, frame));
+        Singletons.drm.load(resInfo, SpriteFrame).then((frame) => frame && Singletons.drm.replace(image, frame));
     }
 }

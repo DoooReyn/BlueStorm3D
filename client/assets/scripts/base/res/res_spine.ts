@@ -2,7 +2,7 @@ import { _decorator, sp } from "cc";
 import { Singletons } from "../singletons";
 import { Gossip } from "../ui/add_ons/gossip";
 import { setupDefaultBundle } from "../ui/add_ons/ui_helper";
-import { I_UiInfo } from "../ui/ui_base";
+import { I_ResInfo } from "./res_info";
 const { ccclass, requireComponent } = _decorator;
 
 /**
@@ -19,10 +19,8 @@ export class ResSpine extends Gossip {
         return this.getComponent(sp.Skeleton) || this.addComponent(sp.Skeleton);
     }
 
-    public setSpineData(info: I_UiInfo): void {
+    public setSpineData(info: I_ResInfo): void {
         setupDefaultBundle(info);
-        Singletons.drm
-            .load(info.path, sp.SkeletonData, info.bundle)
-            .then((data) => data && Singletons.drm.replace(this.spine, data));
+        Singletons.drm.load(info, sp.SkeletonData).then((data) => data && Singletons.drm.replace(this.spine, data));
     }
 }

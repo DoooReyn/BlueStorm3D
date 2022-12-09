@@ -1,8 +1,9 @@
 import { _decorator, Component, Prefab } from "cc";
+import { I_UiInfo, UiInfo } from "../res/res_info";
 import { Singletons } from "../singletons";
 import { Gossip } from "./add_ons/gossip";
 import { setupDefaultBundle } from "./add_ons/ui_helper";
-import { E_Ui_Event, I_UiInfo, UiBase } from "./ui_base";
+import { E_Ui_Event, UiBase } from "./ui_base";
 const { ccclass } = _decorator;
 
 /**
@@ -84,7 +85,7 @@ export abstract class UiStack extends Gossip {
      * @param info 资源信息
      * @returns
      */
-    protected seekUiIndexByUiInfo(info: I_UiInfo) {
+    protected seekUiIndexByUiInfo(info: I_UiInfo | UiInfo) {
         return this._stack.findIndex((v) => v.isTheSameUiInfo(info));
     }
 
@@ -132,7 +133,11 @@ export abstract class UiStack extends Gossip {
      * @param args 参数列表
      * @virtual 按需重写此方法
      */
-    protected async onOpenWhenReachStatckLimit<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
+    protected async onOpenWhenReachStatckLimit<T extends UiBase>(
+        info: I_UiInfo | UiInfo,
+        ...args: any[]
+    ): Promise<T | null> {
+        if (info instanceof UiInfo) info = info.raw;
         this.w(`打开Ui失败,已达到栈极限: ${info.bundle}/${info.path}`);
         return Promise.resolve(null);
     }
@@ -194,7 +199,9 @@ export abstract class UiStack extends Gossip {
      * @param info 资源信息
      * @param args 参数列表
      */
-    public async open<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
+    public async open<T extends UiBase>(info: I_UiInfo | UiInfo, ...args: any[]): Promise<T | null> {
+        if (info instanceof UiInfo) info = info.raw;
+
         setupDefaultBundle(info);
         let uiIndex = this.seekUiIndexByUiInfo(info);
         if (uiIndex > -1) {
@@ -210,7 +217,7 @@ export abstract class UiStack extends Gossip {
         }
 
         this.onShowLoading();
-        let prefab = await Singletons.drm.load<Prefab>(info.path, Prefab, info.bundle);
+        let prefab = await Singletons.drm.load<Prefab>(info, Prefab);
         if (!prefab) {
             this.e(`打开Ui失败,无法加载资源: ${info.bundle}/${info.path}`);
             this.onHideLoading();
@@ -236,7 +243,7 @@ export abstract class UiStack extends Gossip {
      * @param args
      * @returns
      */
-    public async replace<T extends UiBase>(info: I_UiInfo, ...args: any[]): Promise<T | null> {
+    public async replace<T extends UiBase>(info: I_UiInfo | UiInfo, ...args: any[]): Promise<T | null> {
         let uiIndex = this.seekUiIndexByUiInfo(info);
         if (uiIndex === 0) {
             this.closeToRoot();
@@ -252,7 +259,8 @@ export abstract class UiStack extends Gossip {
      * @param info 资源信息
      * @param args 参数列表
      */
-    public close(info: I_UiInfo, ...args: any[]) {
+    public close(info: I_UiInfo | UiInfo, ...args: any[]) {
+        if (info instanceof UiInfo) info = info.raw;
         setupDefaultBundle(info);
         let uiIndex = this.seekUiIndexByUiInfo(info);
         if (uiIndex > -1) {

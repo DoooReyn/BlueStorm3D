@@ -34,13 +34,13 @@ export class ItemBuyDialog extends UiDialogBase {
         this._itemId = conf.id;
         this.uiLabName.string = conf.name;
         this.uiLabDesc.string = conf.desc;
-        Singletons.drm.load<SpriteFrame>(`item/${itemInfo.id}`, SpriteFrame).then((frame) => {
+        Singletons.drm.load<SpriteFrame>({ path: `item/${itemInfo.id}` }, SpriteFrame).then((frame) => {
             frame && Singletons.drm.replace(this.uiSpriteIcon, frame);
             this.uiSpriteIcon.spriteFrame = frame;
         });
     }
 
     onBtnShopClicked() {
-        Singletons.ui.dialogs.replace(UiMap.BuyConfirmDialog, { from: "Shop", id: this._itemId });
+        Singletons.ui.dialogs.replace(UiMap.BuyConfirmDialog.raw, { from: "Shop", id: this._itemId });
     }
 }

@@ -19,7 +19,38 @@
       }
     ],
     "_exoticAnimation": null,
-    "_events": [],
+    "_events": [
+      {
+        "frame": 0,
+        "func": "",
+        "params": []
+      },
+      {
+        "frame": 0,
+        "func": "onZoomStarted",
+        "params": []
+      },
+      {
+        "frame": 0.25,
+        "func": "",
+        "params": []
+      },
+      {
+        "frame": 0.25,
+        "func": "onZoomMax",
+        "params": []
+      },
+      {
+        "frame": 0.6,
+        "func": "",
+        "params": []
+      },
+      {
+        "frame": 0.6,
+        "func": "onZoomFinished",
+        "params": []
+      }
+    ],
     "_embeddedPlayers": []
   },
   {

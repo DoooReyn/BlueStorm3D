@@ -1,9 +1,9 @@
 import { _decorator, Node, director, AudioClip, clamp01 } from "cc";
+import { AudioInfo, I_AudioInfo } from "../res/res_info";
 import { Singletons } from "../singletons";
 import SingletonBase from "../singleton_base";
-import { setupDefaultBundle } from "../ui/add_ons/ui_helper";
 import { AudioHook } from "./audio_hook";
-import { I_AudioHandler, I_AudioInfo } from "./audio_info";
+import { I_AudioHandler } from "./audio_info";
 
 /**
  * Url      : db://assets/scripts/base/audio/audio_mgr.ts
@@ -83,23 +83,18 @@ export class AudioMgr extends SingletonBase {
      * @param audio 音频信息
      * @param handler 音频播放回调
      */
-    play(audio: I_AudioInfo, handler?: I_AudioHandler) {
-        audio.type = audio.type || "effect";
-        audio.loop = audio.loop || false;
-        audio.volume = clamp01(audio.volume || 1.0);
-        setupDefaultBundle(audio);
-
-        Singletons.drm.load<AudioClip>(audio.path, AudioClip, audio.bundle).then((clip) => {
+    play(audio: AudioInfo, handler?: I_AudioHandler) {
+        Singletons.drm.loadBy<AudioClip, I_AudioInfo>(audio).then((clip) => {
             if (!clip) {
-                const error = `[AudioMgr] play failed: ${audio.path}`;
+                const error = `[AudioMgr] play failed: ${audio.raw.path}`;
                 Singletons.log.e(error);
                 handler && handler.onError(error);
                 return;
             }
-            if (audio.type === "music") {
-                this._music.play(clip, audio, handler);
+            if (audio.raw.form === "music") {
+                this._music.play(clip, audio.raw, handler);
             } else {
-                this._effect.play(clip, audio, handler);
+                this._effect.play(clip, audio.raw, handler);
             }
         });
     }

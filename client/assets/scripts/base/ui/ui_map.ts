@@ -1,27 +1,23 @@
-import { setupDefaultBundle } from "./add_ons/ui_helper";
-import { I_UiInfo } from "./ui_base";
+import { UiInfo } from "../res/res_info";
 
 /**
  * Ui资源信息映射表
  */
-export const UiMap: { [key: string]: I_UiInfo } = {
+export const UiMap = {
     // Screen
-    GameScreen: { path: "prefab/screen/game_screen" },
-    HomeScreen: { path: "prefab/screen/home_screen" },
+    GameScreen: UiInfo.from({ path: "prefab/screen/game_screen" }),
+    HomeScreen: UiInfo.from({ path: "prefab/screen/home_screen" }),
     // Layer
-    BagLayer: { path: "prefab/layer/bag_layer" },
-    ShopLayer: { path: "prefab/layer/shop_layer" },
+    BagLayer: UiInfo.from({ path: "prefab/layer/bag_layer" }),
+    ShopLayer: UiInfo.from({ path: "prefab/layer/shop_layer" }),
     // Dialog
-    ItemDetailDialog: { path: "prefab/dialog/item_detail_dialog" },
-    ItemBuyDialog: { path: "prefab/dialog/item_buy_dialog" },
-    BuyConfirmDialog: { path: "prefab/dialog/buy_confirm_dialog" },
+    ItemDetailDialog: UiInfo.from({ path: "prefab/dialog/item_detail_dialog" }),
+    ItemBuyDialog: UiInfo.from({ path: "prefab/dialog/item_buy_dialog" }),
+    BuyConfirmDialog: UiInfo.from({ path: "prefab/dialog/buy_confirm_dialog" }),
     // Loading
-    DefaultLoading: { path: "prefab/loading/default_loading" },
+    DefaultLoading: UiInfo.from({ path: "prefab/loading/default_loading" }),
     // Tip
-    ItemUseTip: { path: "prefab/tip/item_use_tip" },
+    ItemUseTip: UiInfo.from({ path: "prefab/tip/item_use_tip" }),
 };
-for (const key in UiMap) {
-    setupDefaultBundle(UiMap[key]);
-}
 
 (<any>window).UiMap = UiMap;

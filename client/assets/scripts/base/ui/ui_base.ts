@@ -1,5 +1,6 @@
 import { _decorator, Component, Enum, EventTouch, Event, BlockInputEvents } from "cc";
 import { runInSandbox } from "../func/utils";
+import { I_UiInfo, UiInfo } from "../res/res_info";
 import { Singletons } from "../singletons";
 import { Gossip } from "./add_ons/gossip";
 const { ccclass, property, disallowMultiple, requireComponent } = _decorator;
@@ -26,16 +27,6 @@ export const CE_UI_Type = Enum({
     Loading: 3,
     Tip: 4,
 });
-
-/**
- * Ui 资源信息
- * - path   资源路径
- * - bundle 资源隶属的包
- */
-export interface I_UiInfo {
-    path: string;
-    bundle?: string;
-}
 
 /**
  * Ui 事件类型
@@ -140,7 +131,8 @@ export abstract class UiBase extends Gossip {
      * @param info 资源信息
      * @returns
      */
-    public isTheSameUiInfo(info: I_UiInfo) {
+    public isTheSameUiInfo(info: I_UiInfo | UiInfo) {
+        if (info instanceof UiInfo) info = info.raw;
         return this._uiInfo.path === info.path && this._uiInfo.bundle === info.bundle;
     }
 
