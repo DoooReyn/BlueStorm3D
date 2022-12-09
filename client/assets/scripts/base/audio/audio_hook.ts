@@ -71,7 +71,7 @@ export class AudioHook extends Gossip {
      * 获得音频组件
      */
     protected get source() {
-        return this.getComponent(AudioSource) || this.addComponent(AudioSource);
+        return this.setupComponent(AudioSource);
     }
 
     // REGION ENDED <protected>

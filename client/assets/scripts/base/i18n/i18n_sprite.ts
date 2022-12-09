@@ -15,7 +15,7 @@ const { ccclass, requireComponent } = _decorator;
 @requireComponent(Sprite)
 export class i18nSprite extends i18nCom {
     public get sprite(): Sprite {
-        return this.getComponent(Sprite) || this.addComponent(Sprite);
+        return this.setupComponent(Sprite);
     }
 
     public onI18nContentChanged(content: I_i18nContent): void {

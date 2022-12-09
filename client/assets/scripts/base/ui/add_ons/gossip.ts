@@ -1,4 +1,4 @@
-import { Component, _decorator } from "cc";
+import { Component, Constructor, _decorator } from "cc";
 import { AutomaticValue } from "../../func/automatic_value";
 import { Singletons } from "../../singletons";
 
@@ -33,5 +33,14 @@ export class Gossip extends Component {
     }
     protected e(...args: any[]) {
         this.debuggable.value && Singletons.log.e(this.name, ...args);
+    }
+
+    /**
+     * 在节点上部署组件
+     * @param component 组件
+     * @returns
+     */
+    setupComponent<T extends Component>(component: Constructor<T>): T {
+        return this.getComponent(component) || this.addComponent(component);
     }
 }

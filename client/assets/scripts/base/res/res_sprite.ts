@@ -14,7 +14,7 @@ const { ccclass, requireComponent } = _decorator;
 @requireComponent(Sprite)
 export class ResSprite extends Gossip {
     public get sprite(): Sprite {
-        return this.getComponent(Sprite) || this.addComponent(Sprite);
+        return this.setupComponent(Sprite);
     }
 
     public setSpriteFrame(path: string, bundle?: string): void {
