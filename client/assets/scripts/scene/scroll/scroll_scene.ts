@@ -41,10 +41,10 @@ export class ScrollScene extends Gossip {
     @property({ displayName: "允许边界回弹" })
     bouncable: boolean = true;
 
-    @property({ displayName: "回弹时响应触摸事件" })
+    @property({ displayName: "边界回弹时响应触摸事件" })
     movableWhenBounce: boolean = true;
 
-    @property({ displayName: "边界回弹时间(不建议设置太大的值)", min: 0 })
+    @property({ displayName: "边界回弹时间", tooltip: "不建议设置太大的值", min: 0 })
     bounceDuration: number = 0.2;
 
     private _isBouncing: boolean = false;
@@ -193,8 +193,12 @@ export class ScrollScene extends Gossip {
         position.add3f(offset.x, 0, 0);
         let lx = this.getLeftBoundary();
         let rx = this.getRightBoundary();
-        lx > 0 && position.add3f(-lx, 0, 0);
-        rx > 0 && position.add3f(rx, 0, 0);
+        if (this.getIfContentOutOfMask().width) {
+            lx > 0 && position.add3f(-lx, 0, 0);
+            rx > 0 && position.add3f(rx, 0, 0);
+        } else {
+            position.add3f((rx - lx) / 2, 0, 0);
+        }
         return position;
     }
 
@@ -207,9 +211,23 @@ export class ScrollScene extends Gossip {
         position.add3f(0, offset.y, 0);
         let ty = this.getTopBoundary();
         let by = this.getBottomBoundary();
-        by > 0 && position.add3f(0, -by, 0);
-        ty > 0 && position.add3f(0, ty, 0);
+        if (this.getIfContentOutOfMask().height) {
+            by > 0 && position.add3f(0, -by, 0);
+            ty > 0 && position.add3f(0, ty, 0);
+        } else {
+            position.add3f(0, ty, 0);
+        }
         return position;
+    }
+
+    /**
+     * 内容节点尺寸是否超出了遮罩节点
+     * @returns
+     */
+    protected getIfContentOutOfMask() {
+        const cuiTrans = this.contentNode.getComponent(UITransform);
+        const muiTrans = this.maskNode.getComponent(UITransform);
+        return { width: cuiTrans.width > muiTrans.width, height: cuiTrans.height > muiTrans.height };
     }
 
     /**
@@ -254,9 +272,9 @@ export class ScrollScene extends Gossip {
      */
     protected checkBoundaryBounce() {
         if (this.bouncable && this._isMoved) {
-            let current = this.contentNode.position.clone();
+            const current = this.contentNode.position.clone();
             this.getCorrectedPosition();
-            let correct = this.contentNode.position.clone();
+            const correct = this.contentNode.position.clone();
             this.contentNode.position.set(current);
             tween(this.contentNode.position)
                 .to(this.bounceDuration, correct, {
