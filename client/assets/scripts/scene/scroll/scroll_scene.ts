@@ -2,17 +2,50 @@ import { _decorator, Node, EventTouch, Vec2, Enum, UITransform, Vec3, tween, Twe
 import { Gossip } from "../../base/ui/add_ons/gossip";
 const { ccclass, property } = _decorator;
 
-enum E_ViewMoveDirection {
+/**
+ * UiScrollView 滚动方向
+ */
+enum E_UiScrollView_Direction {
     Horizontal,
     Vertical,
     Both,
 }
 
-enum E_BoundaryAt {
+/**
+ * UiScrollView 边界类型
+ * // TODO: Bounce/Scroll 事件
+ */
+enum E_UiScrollView_Boundary {
     Left,
     Right,
     Top,
     Bottom,
+}
+
+/**
+ * UiScrollView 缓动动作标记
+ */
+enum E_UiSwrollView_TweenTag {
+    Bounce = 8001,
+    Inertia,
+}
+
+/**
+ * UiScrollView 事件
+ */
+enum E_UiScrollView_Event {
+    BounceStarted = "bounce-started",
+    BounceFinished = "bounce-finished",
+    ScrollFinished = "scroll-finished",
+    Scrolling = "scrolling",
+    BounceToLeft = "bounce-to-left",
+    BounceToRight = "bounce-to-right",
+    BounceToTop = "bounce-to-top",
+    BounceToBottom = "bounce-to-bottom",
+    ScrollToLeft = "scroll-to-left",
+    ScrollToRight = "scroll-to-right",
+    ScrollToTop = "scroll-to-top",
+    ScrollToBottom = "scroll-to-bottom",
 }
 
 /**
@@ -35,17 +68,17 @@ export class ScrollScene extends Gossip {
     @property({ displayName: "容器", type: Node })
     contentNode: Node = null;
 
-    @property({ displayName: "滚动方向", type: Enum(E_ViewMoveDirection) })
-    direction: E_ViewMoveDirection = E_ViewMoveDirection.Vertical;
+    @property({ displayName: "滚动方向", type: Enum(E_UiScrollView_Direction) })
+    direction: E_UiScrollView_Direction = E_UiScrollView_Direction.Vertical;
 
     @property({ displayName: "允许边界回弹" })
     bouncable: boolean = true;
 
-    @property({ displayName: "边界回弹时响应触摸事件" })
-    movableWhenBounce: boolean = true;
-
     @property({ displayName: "边界回弹时间", tooltip: "不建议设置太大的值", range: [0, 1, 0.1] })
     bounceDuration: number = 0.2;
+
+    @property({ displayName: "边界回弹时响应触摸事件" })
+    dispatchAtBouncing: boolean = true;
 
     @property({ displayName: "开启惯性滚动" })
     inertiaEnable: boolean = false;
@@ -53,18 +86,45 @@ export class ScrollScene extends Gossip {
     @property({ displayName: "惯性滚动持续时间", range: [0, 1, 0.1] })
     inertiaDuration: number = 0.2;
 
+    /**
+     * 正在回弹否
+     */
     private _isBouncing: boolean = false;
+
+    /**
+     * 正在移动否
+     */
     private _isMoved: boolean = false;
-    private _locations: [Vec2, number][] = [];
+
+    /**
+     * 位置标记信息
+     */
+    private _touchLocMarks: [Vec2, number][] = [];
 
     // REGION ENDED <Member Variables>
 
     // REGION START <protected>
+
     protected onEnable() {
-        this.maskNode.on(Node.EventType.TOUCH_START, this.onTouchStart, this, true);
-        this.maskNode.on(Node.EventType.TOUCH_MOVE, this.onTouchMove, this, true);
-        this.maskNode.on(Node.EventType.TOUCH_END, this.onTouchEnded, this, true);
-        this.maskNode.on(Node.EventType.TOUCH_CANCEL, this.onTouchCancel, this, true);
+        this.maskNode.on(Node.EventType.TOUCH_START, this._onTouchStart, this, true);
+        this.maskNode.on(Node.EventType.TOUCH_MOVE, this._onTouchMove, this, true);
+        this.maskNode.on(Node.EventType.TOUCH_END, this._onTouchEnded, this, true);
+        this.maskNode.on(Node.EventType.TOUCH_CANCEL, this._onTouchCancel, this, true);
+    }
+
+    protected onDisable() {
+        this.maskNode.off(Node.EventType.TOUCH_START, this._onTouchStart, this, true);
+        this.maskNode.off(Node.EventType.TOUCH_MOVE, this._onTouchMove, this, true);
+        this.maskNode.off(Node.EventType.TOUCH_END, this._onTouchEnded, this, true);
+        this.maskNode.off(Node.EventType.TOUCH_CANCEL, this._onTouchCancel, this, true);
+    }
+
+    /**
+     * 按钮点击事件
+     * @param e 触摸事件
+     */
+    protected onBtnClicked(e: EventTouch) {
+        this.i("onBtnClicked", e.target.parent.name);
     }
 
     /**
@@ -72,13 +132,13 @@ export class ScrollScene extends Gossip {
      * - 如果目标节点是遮罩节点，应该阻止事件继续传递
      * @param e 触摸事件
      */
-    protected onTouchStart(e: EventTouch) {
-        if (e.target === this.maskNode || (this._isBouncing && !this.movableWhenBounce)) {
+    protected _onTouchStart(e: EventTouch) {
+        if (e.target === this.maskNode || (this._isBouncing && !this.dispatchAtBouncing)) {
             e.propagationStopped = true;
         }
         if (this.inertiaEnable && this.inertiaDuration > 0) {
-            this.clearLocations();
-            this.addLocation(e.getLocation());
+            this._clearTouchLocMarks();
+            this._addTouchLocMark(e.getLocation());
         }
     }
 
@@ -89,41 +149,26 @@ export class ScrollScene extends Gossip {
      * - 即实现移动时不响应子节点的触摸事件
      * @param e 触摸事件
      */
-    protected onTouchMove(e: EventTouch) {
-        if (this._isBouncing && !this.movableWhenBounce) {
+    protected _onTouchMove(e: EventTouch) {
+        if (this._isBouncing && !this.dispatchAtBouncing) {
             e.propagationStopped = true;
             return;
         }
-        const isMove = !e.getDelta().equals(Vec2.ZERO);
-        if (isMove) {
-            Tween.stopAllByTag(1002);
+
+        const delta = e.getDelta();
+        const moved = !delta.equals(Vec2.ZERO);
+        if (moved) {
+            Tween.stopAllByTag(E_UiSwrollView_TweenTag.Bounce);
             this._isMoved = true;
             if (e.target !== this.maskNode) {
                 e.target.emit(Node.EventType.TOUCH_CANCEL, e);
             }
-            this.moveOffset(e.getDelta().divide2f(2.0, 2.0));
-        }
-        if (this.inertiaEnable && this.inertiaDuration > 0) {
-            this.addLocation(e.getLocation());
-        }
-    }
+            if (this.inertiaEnable && this.inertiaDuration > 0) {
+                this._addTouchLocMark(e.getLocation());
+            }
 
-    protected addLocation(loc: Vec2) {
-        if (this._locations.length >= 3) {
-            this._locations.pop();
+            this._moveByOffset(delta.multiplyScalar(0.5));
         }
-        this._locations.unshift([loc, sys.now()]);
-    }
-
-    protected getLocationsInfo() {
-        let [v1, v2, v3] = this._locations;
-        let dist = v1[0].subtract(v3[0]);
-        let time = (v1[1] - v2[1]) / 1000;
-        return { dist, time, valid: time <= 0.01 };
-    }
-
-    protected clearLocations() {
-        this._locations.length = 0;
     }
 
     /**
@@ -131,23 +176,23 @@ export class ScrollScene extends Gossip {
      * - 如果目标节点是遮罩节点，应该阻止事件继续传递
      * @param e 触摸事件
      */
-    protected onTouchEnded(e: EventTouch) {
-        if (this._isBouncing && !this.movableWhenBounce) {
+    protected _onTouchEnded(e: EventTouch) {
+        if (this._isBouncing && !this.dispatchAtBouncing) {
             e.propagationStopped = true;
             return;
         }
 
-        if (this.inertiaEnable && this.inertiaDuration > 0) {
-            this.addLocation(e.getLocation());
-            let info = this.getLocationsInfo();
+        if (this._isInertiaValid()) {
+            this._addTouchLocMark(e.getLocation());
+            let info = this._geTouchLocMarksInfo();
             if (info.valid) {
-                this.scrollByInertia(info.dist);
+                this._scrollByInertia(info.dist);
             } else {
-                this.checkBoundaryBounce();
+                this._checkBoundaryBounce();
             }
-            this.clearLocations();
+            this._clearTouchLocMarks();
         } else {
-            this.checkBoundaryBounce();
+            this._checkBoundaryBounce();
         }
     }
 
@@ -156,101 +201,120 @@ export class ScrollScene extends Gossip {
      * - 如果目标节点是遮罩节点，应该阻止事件继续传递
      * @param e 触摸事件
      */
-    protected onTouchCancel(e: EventTouch) {
-        if (this._isBouncing && !this.movableWhenBounce) {
-            e.propagationStopped = true;
-            return;
-        }
-        if (this.inertiaEnable && this.inertiaDuration > 0) {
-            this.addLocation(e.getLocation());
-            let info = this.getLocationsInfo();
-            if (info.valid) {
-                this.scrollByInertia(info.dist);
-            } else {
-                this.checkBoundaryBounce();
-            }
-            this.clearLocations();
-        } else {
-            this.checkBoundaryBounce();
-        }
+    protected _onTouchCancel(e: EventTouch) {
+        this._onTouchEnded(e);
     }
 
-    protected calculateAttenuatedFactor(distance: number) {
+    /**
+     * 惯性滚动有效条件
+     * - 惯性滚动开关开启
+     * - 惯性滚动持续时间大于 0
+     * - 内容节点尺寸超过视图
+     * @returns
+     */
+    protected _isInertiaValid() {
+        const contentOutOfMask = this._getDataOfOutSize();
+        const isOutOfMask = contentOutOfMask.width || contentOutOfMask.height;
+        return this.inertiaEnable && this.inertiaDuration > 0 && isOutOfMask;
+    }
+
+    /**
+     * 添加触摸位置标记
+     * @param loc 位置
+     */
+    protected _addTouchLocMark(loc: Vec2) {
+        if (this._touchLocMarks.length >= 3) {
+            this._touchLocMarks.pop();
+        }
+        this._touchLocMarks.unshift([loc, sys.now()]);
+    }
+
+    /**
+     * 获取触摸位置信息
+     * @returns
+     */
+    protected _geTouchLocMarksInfo() {
+        let [v1, v2, v3] = this._touchLocMarks;
+        let dist = v1[0].subtract(v3[0]);
+        let time = (v1[1] - v2[1]) / 1000;
+        return { dist, time, valid: time <= 0.01 };
+    }
+
+    /**
+     * 清除触摸位置标记信息
+     */
+    protected _clearTouchLocMarks() {
+        this._touchLocMarks.length = 0;
+    }
+
+    /**
+     * 计算滚动距离衰减系数
+     * @param distance 距离
+     * @returns
+     */
+    protected _calculateAttenuatedFactor(distance: number) {
         return this.inertiaDuration * distance * 0.00000003;
+    }
+
+    /**
+     * 检查水平方向是否需要回弹
+     * @returns
+     */
+    protected _checkIfHorizontalBounced() {
+        const contentOutOfMask = this._getDataOfOutSize();
+        return contentOutOfMask.width && (this._getLeftBoundary() > 0 || this._getRightBoundary() > 0);
+    }
+
+    /**
+     * 检查垂直方向是否需要回弹
+     * @returns
+     */
+    protected _checkIfVerticalBounced() {
+        const contentOutOfMask = this._getDataOfOutSize();
+        return contentOutOfMask.height && (this._getBottomBoundary() > 0 || this._getTopBoundary() > 0);
     }
 
     /**
      * 惯性滚动
      * @param offset 移动偏移量
      */
-    protected scrollByInertia(offset: Vec2) {
+    protected _scrollByInertia(offset: Vec2) {
+        let bounced = false;
         const cuiTrans = this.contentNode.getComponent(UITransform);
         const muiTrans = this.maskNode.getComponent(UITransform);
         const totalMoveWidth = cuiTrans.width - muiTrans.width;
         const totalMoveHeight = cuiTrans.height - muiTrans.height;
-        const attenuatedFactorX = this.calculateAttenuatedFactor(totalMoveWidth);
-        const attenuatedFactorY = this.calculateAttenuatedFactor(totalMoveHeight);
+        const attenuatedFactorX = this._calculateAttenuatedFactor(totalMoveWidth);
+        const attenuatedFactorY = this._calculateAttenuatedFactor(totalMoveHeight);
         offset.x = offset.x * totalMoveWidth * this.inertiaDuration * attenuatedFactorX;
-        offset.y = offset.y * totalMoveHeight * attenuatedFactorY * this.inertiaDuration;
+        offset.y = offset.y * totalMoveHeight * this.inertiaDuration * attenuatedFactorY;
         offset.x = Math.max(10, Math.abs(offset.x)) * Math.sign(offset.x);
         offset.y = Math.max(10, Math.abs(offset.y)) * Math.sign(offset.y);
 
-        let bounce = false;
-
-        function checkHorizontal(target: any) {
-            if (bounce) {
-                Tween.stopAllByTag(1001);
-                this.checkBoundaryBounce();
-            } else {
-                if (this.getLeftBoundary() > 0 || this.getRightBoundary() > 0) {
-                    if (this.getIfContentOutOfMask().width) bounce = true;
-                }
-                this.moveOffset(target);
-            }
-        }
-
-        function checkVertical(target: any) {
-            if (bounce) {
-                Tween.stopAllByTag(1001);
-                this.checkBoundaryBounce();
-            } else {
-                if (this.getBottomBoundary() > 0 || this.getTopBoundary() > 0) {
-                    if (this.getIfContentOutOfMask().height) bounce = true;
-                }
-                this.moveOffset(target);
-            }
-        }
-
-        Tween.stopAllByTag(1001);
+        Tween.stopAllByTag(E_UiSwrollView_TweenTag.Inertia);
         tween(offset)
-            .tag(1001)
+            .tag(E_UiSwrollView_TweenTag.Inertia)
             .to(0.5 / (1.5 - this.inertiaDuration), Vec2.ZERO, {
                 easing: "smooth",
                 onUpdate: (target: Vec2) => {
-                    if (this.direction === E_ViewMoveDirection.Vertical) {
-                        checkVertical.call(this, target);
-                    } else if (this.direction === E_ViewMoveDirection.Horizontal) {
-                        checkHorizontal.call(this, target);
+                    if (bounced) {
+                        Tween.stopAllByTag(E_UiSwrollView_TweenTag.Inertia);
+                        this._checkBoundaryBounce();
                     } else {
-                        checkHorizontal.call(this, target);
-                        if (!bounce) {
-                            checkVertical.call(this, target);
+                        if (this.direction === E_UiScrollView_Direction.Vertical) {
+                            bounced = this._checkIfVerticalBounced();
+                        } else if (this.direction === E_UiScrollView_Direction.Horizontal) {
+                            bounced = this._checkIfHorizontalBounced();
+                        } else {
+                            bounced = this._checkIfHorizontalBounced();
+                            if (!bounced) bounced = this._checkIfVerticalBounced();
                         }
+                        this._moveByOffset(target.multiplyScalar(0.5));
                     }
                 },
             })
-            .call(() => {
-                this.checkBoundaryBounce();
-            })
+            .call(this._checkBoundaryBounce.bind(this))
             .start();
-    }
-
-    /**
-     * 按钮点击事件
-     * @param e 触摸事件
-     */
-    protected onBtnClicked(e: EventTouch) {
-        this.i(e.target.parent.name);
     }
 
     /**
@@ -261,18 +325,18 @@ export class ScrollScene extends Gossip {
      * @param boundary 边界位置
      * @returns
      */
-    protected getBoundary(boundary: E_BoundaryAt) {
+    protected _getBoundary(boundary: E_UiScrollView_Boundary) {
         const position = this.contentNode.position;
         const cuiTrans = this.contentNode.getComponent(UITransform);
         const muiTrans = this.maskNode.getComponent(UITransform);
         switch (boundary) {
-            case E_BoundaryAt.Left:
+            case E_UiScrollView_Boundary.Left:
                 return muiTrans.width * muiTrans.anchorX + position.x - cuiTrans.anchorX * cuiTrans.width;
-            case E_BoundaryAt.Right:
+            case E_UiScrollView_Boundary.Right:
                 return muiTrans.width * muiTrans.anchorX - position.x - cuiTrans.anchorX * cuiTrans.width;
-            case E_BoundaryAt.Top:
-                return muiTrans.height - cuiTrans.height - this.getBottomBoundary();
-            case E_BoundaryAt.Bottom:
+            case E_UiScrollView_Boundary.Top:
+                return muiTrans.height - cuiTrans.height - this._getBottomBoundary();
+            case E_UiScrollView_Boundary.Bottom:
                 return muiTrans.height * muiTrans.anchorY + position.y - cuiTrans.height * cuiTrans.anchorY;
         }
     }
@@ -281,44 +345,44 @@ export class ScrollScene extends Gossip {
      * 获取与左边界的距离
      * @returns
      */
-    protected getLeftBoundary() {
-        return this.getBoundary(E_BoundaryAt.Left);
+    protected _getLeftBoundary() {
+        return this._getBoundary(E_UiScrollView_Boundary.Left);
     }
 
     /**
      * 获取与右边界的距离
      * @returns
      */
-    protected getRightBoundary() {
-        return this.getBoundary(E_BoundaryAt.Right);
+    protected _getRightBoundary() {
+        return this._getBoundary(E_UiScrollView_Boundary.Right);
     }
 
     /**
      * 获取与上边界的距离
      * @returns
      */
-    protected getTopBoundary() {
-        return this.getBoundary(E_BoundaryAt.Top);
+    protected _getTopBoundary() {
+        return this._getBoundary(E_UiScrollView_Boundary.Top);
     }
 
     /**
      * 获取与下边界的距离
      * @returns
      */
-    protected getBottomBoundary() {
-        return this.getBoundary(E_BoundaryAt.Bottom);
+    protected _getBottomBoundary() {
+        return this._getBoundary(E_UiScrollView_Boundary.Bottom);
     }
 
     /**
      * 检查水平方向偏移
      * @param offset 移动偏移量
      */
-    protected checkHorizontal(offset: Vec2 = Vec2.ZERO) {
+    protected _checkHorizontalOffset(offset: Vec2 = Vec2.ZERO) {
         const position = this.contentNode.position;
         position.add3f(offset.x, 0, 0);
-        let lx = this.getLeftBoundary();
-        let rx = this.getRightBoundary();
-        if (this.getIfContentOutOfMask().width) {
+        let lx = this._getLeftBoundary();
+        let rx = this._getRightBoundary();
+        if (this._getDataOfOutSize().width) {
             lx > 0 && position.add3f(-lx, 0, 0);
             rx > 0 && position.add3f(rx, 0, 0);
         } else {
@@ -331,12 +395,12 @@ export class ScrollScene extends Gossip {
      * 检查垂直方向偏移
      * @param offset 移动偏移量
      */
-    protected checkVertical(offset: Vec2 = Vec2.ZERO) {
+    protected _checkVerticalOffset(offset: Vec2 = Vec2.ZERO) {
         const position = this.contentNode.position;
         position.add3f(0, offset.y, 0);
-        let ty = this.getTopBoundary();
-        let by = this.getBottomBoundary();
-        if (this.getIfContentOutOfMask().height) {
+        let ty = this._getTopBoundary();
+        let by = this._getBottomBoundary();
+        if (this._getDataOfOutSize().height) {
             by > 0 && position.add3f(0, -by, 0);
             ty > 0 && position.add3f(0, ty, 0);
         } else {
@@ -346,80 +410,125 @@ export class ScrollScene extends Gossip {
     }
 
     /**
-     * 内容节点尺寸是否超出了遮罩节点
+     * 检查最终位置偏移
+     */
+    protected _checkFinalOffset(offset: Vec2 = Vec2.ZERO) {
+        if (this.direction === E_UiScrollView_Direction.Horizontal) {
+            this._checkHorizontalOffset(offset);
+        } else if (this.direction === E_UiScrollView_Direction.Vertical) {
+            this._checkVerticalOffset(offset);
+        } else if (this.direction === E_UiScrollView_Direction.Both) {
+            this._checkHorizontalOffset(offset);
+            this._checkVerticalOffset(offset);
+        }
+    }
+
+    /**
+     * 获取内容节点尺寸超出信息
      * @returns
      */
-    protected getIfContentOutOfMask() {
+    protected _getDataOfOutSize() {
         const cuiTrans = this.contentNode.getComponent(UITransform);
         const muiTrans = this.maskNode.getComponent(UITransform);
         return { width: cuiTrans.width > muiTrans.width, height: cuiTrans.height > muiTrans.height };
     }
 
     /**
-     * 获取纠正过的位置
-     */
-    protected getCorrectedPosition(offset: Vec2 = Vec2.ZERO) {
-        if (this.direction === E_ViewMoveDirection.Horizontal) {
-            this.checkHorizontal(offset);
-        } else if (this.direction === E_ViewMoveDirection.Vertical) {
-            this.checkVertical(offset);
-        } else if (this.direction === E_ViewMoveDirection.Both) {
-            this.checkHorizontal(offset);
-            this.checkVertical(offset);
-        }
-    }
-
-    /**
      * 按照偏移量对内容节点进行移动
      * @param offset 移动偏移量
      */
-    protected moveOffset(offset: Vec2 = Vec2.ZERO) {
+    protected _moveByOffset(offset: Vec2 = Vec2.ZERO) {
         let position = this.contentNode.position;
         if (this.bouncable) {
-            if (this.direction === E_ViewMoveDirection.Horizontal) {
+            if (this.direction === E_UiScrollView_Direction.Horizontal) {
                 position.add3f(offset.x, 0, 0);
-            } else if (this.direction === E_ViewMoveDirection.Vertical) {
+            } else if (this.direction === E_UiScrollView_Direction.Vertical) {
                 position.add3f(0, offset.y, 0);
-            } else if (this.direction === E_ViewMoveDirection.Both) {
+            } else if (this.direction === E_UiScrollView_Direction.Both) {
                 position.add3f(offset.x, offset.y, 0);
             }
             this._isMoved = true;
         } else {
-            this.getCorrectedPosition(offset);
+            this._checkFinalOffset(offset);
         }
+        this._onScrolling(position.x, position.y);
         this.contentNode.setPosition(position);
     }
 
     /**
      * 回弹校正
      */
-    protected checkBoundaryBounce() {
+    protected _checkBoundaryBounce() {
         if (this.bouncable && this._isMoved) {
-            const current = this.contentNode.position.clone();
-            this.getCorrectedPosition();
-            const correct = this.contentNode.position.clone();
-            this.contentNode.position.set(current);
-            Tween.stopAllByTag(1002);
+            const before = this.contentNode.position.clone();
+            this._checkFinalOffset();
+            const after = this.contentNode.position.clone();
+            this.contentNode.position.set(before);
+            Tween.stopAllByTag(E_UiSwrollView_TweenTag.Bounce);
             tween(this.contentNode.position)
-                .tag(1002)
-                .to(this.bounceDuration, correct, {
+                .tag(E_UiSwrollView_TweenTag.Bounce)
+                .to(this.bounceDuration, after, {
                     easing: "sineOut",
-                    onStart: () => (this._isBouncing = true),
-                    onUpdate: (target: Vec3) => (this.contentNode.position = target),
+                    onStart: this._onBounceStarted.bind(this),
+                    onUpdate: this._onBounceRefresh.bind(this),
                 })
-                .call(() => {
-                    this._isMoved = false;
-                    this._isBouncing = false;
-                })
+                .call(this._onBounceFinished.bind(this))
                 .start();
         } else {
             this._isMoved = false;
+            this._onScrollFinished(this.contentNode.position.x, this.contentNode.position.y);
         }
     }
 
+    /**
+     * 边界回弹开始回调
+     */
+    protected _onBounceStarted() {
+        this._isMoved = true;
+        this._isBouncing = true;
+        this.node.emit(E_UiScrollView_Event.BounceStarted, this);
+        // this.i("onBounceStarted", this.contentNode.position.x, this.contentNode.position.y);
+    }
+
+    /**
+     * 边界回弹位置刷新
+     * @param pos 内容节点当前位置
+     */
+    protected _onBounceRefresh(pos: Vec3) {
+        this.contentNode.position = pos;
+        this._onScrolling(pos.x, pos.y);
+    }
+
+    /**
+     * 边界回弹完成回调
+     */
+    protected _onBounceFinished() {
+        this._isMoved = false;
+        this._isBouncing = false;
+        this.node.emit(E_UiScrollView_Event.BounceFinished, this);
+        this._onScrollFinished(this.contentNode.position.x, this.contentNode.position.y);
+        // this.i("onBounceFinished", this.contentNode.position.x, this.contentNode.position.y);
+    }
+
+    /**
+     * 滚动中回调
+     * @param x 内容节点当前位置X
+     * @param y 内容节点当前位置Y
+     */
+    protected _onScrolling(x: number, y: number) {
+        this.node.emit(E_UiScrollView_Event.Scrolling, this, x, y);
+        // this.i("onScrolling", x, y);
+    }
+
+    /**
+     * 滚动结束回调
+     * @param x 内容节点当前位置X
+     * @param y 内容节点当前位置Y
+     */
+    protected _onScrollFinished(x: number, y: number) {
+        this.node.emit(E_UiScrollView_Event.ScrollFinished, this, x, y);
+        // this.i("onScrollFinished", x, y);
+    }
+
     // REGION ENDED <protected>
-
-    // REGION START <public>
-
-    // REGION ENDED <public>
 }
