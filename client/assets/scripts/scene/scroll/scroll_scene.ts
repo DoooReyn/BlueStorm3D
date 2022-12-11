@@ -1,4 +1,4 @@
-import { _decorator, Node, EventTouch, Vec2, Enum, UITransform, Vec3, tween, Tween } from "cc";
+import { _decorator, Node, EventTouch, Vec2, Enum, UITransform, Vec3, tween, Tween, sys } from "cc";
 import { Gossip } from "../../base/ui/add_ons/gossip";
 const { ccclass, property } = _decorator;
 
@@ -44,11 +44,18 @@ export class ScrollScene extends Gossip {
     @property({ displayName: "边界回弹时响应触摸事件" })
     movableWhenBounce: boolean = true;
 
-    @property({ displayName: "边界回弹时间", tooltip: "不建议设置太大的值", min: 0 })
+    @property({ displayName: "边界回弹时间", tooltip: "不建议设置太大的值", range: [0, 1, 0.1] })
     bounceDuration: number = 0.2;
+
+    @property({ displayName: "开启惯性滚动" })
+    inertiaEnable: boolean = false;
+
+    @property({ displayName: "惯性滚动持续时间", range: [0, 1, 0.1] })
+    inertiaDuration: number = 0.2;
 
     private _isBouncing: boolean = false;
     private _isMoved: boolean = false;
+    private _locations: [Vec2, number][] = [];
 
     // REGION ENDED <Member Variables>
 
@@ -69,6 +76,10 @@ export class ScrollScene extends Gossip {
         if (e.target === this.maskNode || (this._isBouncing && !this.movableWhenBounce)) {
             e.propagationStopped = true;
         }
+        if (this.inertiaEnable && this.inertiaDuration > 0) {
+            this.clearLocations();
+            this.addLocation(e.getLocation());
+        }
     }
 
     /**
@@ -85,13 +96,34 @@ export class ScrollScene extends Gossip {
         }
         const isMove = !e.getDelta().equals(Vec2.ZERO);
         if (isMove) {
-            Tween.stopAllByTarget(this.contentNode.position);
+            Tween.stopAllByTag(1002);
             this._isMoved = true;
             if (e.target !== this.maskNode) {
                 e.target.emit(Node.EventType.TOUCH_CANCEL, e);
             }
             this.moveOffset(e.getDelta().divide2f(2.0, 2.0));
         }
+        if (this.inertiaEnable && this.inertiaDuration > 0) {
+            this.addLocation(e.getLocation());
+        }
+    }
+
+    protected addLocation(loc: Vec2) {
+        if (this._locations.length >= 3) {
+            this._locations.pop();
+        }
+        this._locations.unshift([loc, sys.now()]);
+    }
+
+    protected getLocationsInfo() {
+        let [v1, v2, v3] = this._locations;
+        let dist = v1[0].subtract(v3[0]);
+        let time = (v1[1] - v2[1]) / 1000;
+        return { dist, time, valid: time <= 0.01 };
+    }
+
+    protected clearLocations() {
+        this._locations.length = 0;
     }
 
     /**
@@ -104,7 +136,19 @@ export class ScrollScene extends Gossip {
             e.propagationStopped = true;
             return;
         }
-        this.checkBoundaryBounce();
+
+        if (this.inertiaEnable && this.inertiaDuration > 0) {
+            this.addLocation(e.getLocation());
+            let info = this.getLocationsInfo();
+            if (info.valid) {
+                this.scrollByInertia(info.dist);
+            } else {
+                this.checkBoundaryBounce();
+            }
+            this.clearLocations();
+        } else {
+            this.checkBoundaryBounce();
+        }
     }
 
     /**
@@ -117,7 +161,88 @@ export class ScrollScene extends Gossip {
             e.propagationStopped = true;
             return;
         }
-        this.checkBoundaryBounce();
+        if (this.inertiaEnable && this.inertiaDuration > 0) {
+            this.addLocation(e.getLocation());
+            let info = this.getLocationsInfo();
+            if (info.valid) {
+                this.scrollByInertia(info.dist);
+            } else {
+                this.checkBoundaryBounce();
+            }
+            this.clearLocations();
+        } else {
+            this.checkBoundaryBounce();
+        }
+    }
+
+    protected calculateAttenuatedFactor(distance: number) {
+        return this.inertiaDuration * distance * 0.00000003;
+    }
+
+    /**
+     * 惯性滚动
+     * @param offset 移动偏移量
+     */
+    protected scrollByInertia(offset: Vec2) {
+        const cuiTrans = this.contentNode.getComponent(UITransform);
+        const muiTrans = this.maskNode.getComponent(UITransform);
+        const totalMoveWidth = cuiTrans.width - muiTrans.width;
+        const totalMoveHeight = cuiTrans.height - muiTrans.height;
+        const attenuatedFactorX = this.calculateAttenuatedFactor(totalMoveWidth);
+        const attenuatedFactorY = this.calculateAttenuatedFactor(totalMoveHeight);
+        offset.x = offset.x * totalMoveWidth * this.inertiaDuration * attenuatedFactorX;
+        offset.y = offset.y * totalMoveHeight * attenuatedFactorY * this.inertiaDuration;
+        offset.x = Math.max(10, Math.abs(offset.x)) * Math.sign(offset.x);
+        offset.y = Math.max(10, Math.abs(offset.y)) * Math.sign(offset.y);
+
+        let bounce = false;
+
+        function checkHorizontal(target: any) {
+            if (bounce) {
+                Tween.stopAllByTag(1001);
+                this.checkBoundaryBounce();
+            } else {
+                if (this.getLeftBoundary() > 0 || this.getRightBoundary() > 0) {
+                    if (this.getIfContentOutOfMask().width) bounce = true;
+                }
+                this.moveOffset(target);
+            }
+        }
+
+        function checkVertical(target: any) {
+            if (bounce) {
+                Tween.stopAllByTag(1001);
+                this.checkBoundaryBounce();
+            } else {
+                if (this.getBottomBoundary() > 0 || this.getTopBoundary() > 0) {
+                    if (this.getIfContentOutOfMask().height) bounce = true;
+                }
+                this.moveOffset(target);
+            }
+        }
+
+        Tween.stopAllByTag(1001);
+        tween(offset)
+            .tag(1001)
+            .to(0.5 / (1.5 - this.inertiaDuration), Vec2.ZERO, {
+                easing: "smooth",
+                onUpdate: (target: Vec2) => {
+                    if (this.direction === E_ViewMoveDirection.Vertical) {
+                        checkVertical.call(this, target);
+                    } else if (this.direction === E_ViewMoveDirection.Horizontal) {
+                        checkHorizontal.call(this, target);
+                    } else {
+                        checkHorizontal.call(this, target);
+                        if (!bounce) {
+                            checkVertical.call(this, target);
+                        }
+                    }
+                },
+            })
+            .call(() => {
+                this.checkBoundaryBounce();
+            })
+            .start();
     }
 
     /**
@@ -250,8 +375,6 @@ export class ScrollScene extends Gossip {
      */
     protected moveOffset(offset: Vec2 = Vec2.ZERO) {
         let position = this.contentNode.position;
-        // this.i("offset:", offset.x, offset.y);
-        // this.i("before:", position.x, position.y);
         if (this.bouncable) {
             if (this.direction === E_ViewMoveDirection.Horizontal) {
                 position.add3f(offset.x, 0, 0);
@@ -260,10 +383,10 @@ export class ScrollScene extends Gossip {
             } else if (this.direction === E_ViewMoveDirection.Both) {
                 position.add3f(offset.x, offset.y, 0);
             }
+            this._isMoved = true;
         } else {
             this.getCorrectedPosition(offset);
         }
-        // this.i("after:", position.x, position.y);
         this.contentNode.setPosition(position);
     }
 
@@ -276,7 +399,9 @@ export class ScrollScene extends Gossip {
             this.getCorrectedPosition();
             const correct = this.contentNode.position.clone();
             this.contentNode.position.set(current);
+            Tween.stopAllByTag(1002);
             tween(this.contentNode.position)
+                .tag(1002)
                 .to(this.bounceDuration, correct, {
                     easing: "sineOut",
                     onStart: () => (this._isBouncing = true),
