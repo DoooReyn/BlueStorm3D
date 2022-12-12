@@ -13,7 +13,6 @@ enum E_UiScrollView_Direction {
 
 /**
  * UiScrollView 边界类型
- * // TODO: Bounce/Scroll 事件
  */
 enum E_UiScrollView_Boundary {
     Left,
@@ -28,6 +27,7 @@ enum E_UiScrollView_Boundary {
 enum E_UiSwrollView_TweenTag {
     Bounce = 8001,
     Inertia,
+    Scroll,
 }
 
 /**
@@ -38,14 +38,6 @@ enum E_UiScrollView_Event {
     BounceFinished = "bounce-finished",
     ScrollFinished = "scroll-finished",
     Scrolling = "scrolling",
-    BounceToLeft = "bounce-to-left",
-    BounceToRight = "bounce-to-right",
-    BounceToTop = "bounce-to-top",
-    BounceToBottom = "bounce-to-bottom",
-    ScrollToLeft = "scroll-to-left",
-    ScrollToRight = "scroll-to-right",
-    ScrollToTop = "scroll-to-top",
-    ScrollToBottom = "scroll-to-bottom",
 }
 
 /**
@@ -106,6 +98,7 @@ export class ScrollScene extends Gossip {
     // REGION START <protected>
 
     protected onEnable() {
+        (<any>window).sv = this;
         this.maskNode.on(Node.EventType.TOUCH_START, this._onTouchStart, this, true);
         this.maskNode.on(Node.EventType.TOUCH_MOVE, this._onTouchMove, this, true);
         this.maskNode.on(Node.EventType.TOUCH_END, this._onTouchEnded, this, true);
@@ -184,7 +177,7 @@ export class ScrollScene extends Gossip {
 
         if (this._isInertiaValid()) {
             this._addTouchLocMark(e.getLocation());
-            let info = this._geTouchLocMarksInfo();
+            let info = this._getTouchLocMarksInfo();
             if (info.valid) {
                 this._scrollByInertia(info.dist);
             } else {
@@ -233,11 +226,15 @@ export class ScrollScene extends Gossip {
      * 获取触摸位置信息
      * @returns
      */
-    protected _geTouchLocMarksInfo() {
-        let [v1, v2, v3] = this._touchLocMarks;
-        let dist = v1[0].subtract(v3[0]);
-        let time = (v1[1] - v2[1]) / 1000;
-        return { dist, time, valid: time <= 0.01 };
+    protected _getTouchLocMarksInfo() {
+        if (this._touchLocMarks.length < 3) {
+            return { dist: Vec2.ZERO, time: 1, valid: false };
+        } else {
+            let [v1, v2, v3] = this._touchLocMarks;
+            let dist = v1[0].subtract(v3[0]);
+            let time = (v1[1] - v2[1]) / 1000;
+            return { dist, time, valid: time <= 0.01 };
+        }
     }
 
     /**
@@ -291,10 +288,11 @@ export class ScrollScene extends Gossip {
         offset.x = Math.max(10, Math.abs(offset.x)) * Math.sign(offset.x);
         offset.y = Math.max(10, Math.abs(offset.y)) * Math.sign(offset.y);
 
+        const duration = 0.5 / (1.5 - this.inertiaDuration);
         Tween.stopAllByTag(E_UiSwrollView_TweenTag.Inertia);
         tween(offset)
             .tag(E_UiSwrollView_TweenTag.Inertia)
-            .to(0.5 / (1.5 - this.inertiaDuration), Vec2.ZERO, {
+            .to(duration, Vec2.ZERO, {
                 easing: "smooth",
                 onUpdate: (target: Vec2) => {
                     if (bounced) {
@@ -377,7 +375,7 @@ export class ScrollScene extends Gossip {
      * 检查水平方向偏移
      * @param offset 移动偏移量
      */
-    protected _checkHorizontalOffset(offset: Vec2 = Vec2.ZERO) {
+    protected _checkHorizontalOffset(offset: Vec2) {
         const position = this.contentNode.position;
         position.add3f(offset.x, 0, 0);
         let lx = this._getLeftBoundary();
@@ -395,7 +393,7 @@ export class ScrollScene extends Gossip {
      * 检查垂直方向偏移
      * @param offset 移动偏移量
      */
-    protected _checkVerticalOffset(offset: Vec2 = Vec2.ZERO) {
+    protected _checkVerticalOffset(offset: Vec2) {
         const position = this.contentNode.position;
         position.add3f(0, offset.y, 0);
         let ty = this._getTopBoundary();
@@ -518,6 +516,7 @@ export class ScrollScene extends Gossip {
     protected _onScrolling(x: number, y: number) {
         this.node.emit(E_UiScrollView_Event.Scrolling, this, x, y);
         // this.i("onScrolling", x, y);
+        this.i("scroll:", this.isScrollToTop(), this.isScrollToBottom(), this.isScrollToLeft(), this.isScrollToRight());
     }
 
     /**
@@ -528,6 +527,115 @@ export class ScrollScene extends Gossip {
     protected _onScrollFinished(x: number, y: number) {
         this.node.emit(E_UiScrollView_Event.ScrollFinished, this, x, y);
         // this.i("onScrollFinished", x, y);
+    }
+
+    /**
+     * 是否已滚动到顶部
+     * @returns
+     */
+    public isScrollToTop() {
+        return this._getDataOfOutSize().height ? this._getTopBoundary() >= 0 : true;
+    }
+
+    /**
+     * 是否已滚动到底部
+     * @returns
+     */
+    public isScrollToBottom() {
+        return this._getDataOfOutSize().height ? this._getBottomBoundary() >= 0 : true;
+    }
+
+    /**
+     * 是否已滚动到左部
+     * @returns
+     */
+    public isScrollToLeft() {
+        return this._getDataOfOutSize().width ? this._getLeftBoundary() >= 0 : true;
+    }
+
+    /**
+     * 是否已滚动到右部
+     * @returns
+     */
+    public isScrollToRight() {
+        return this._getDataOfOutSize().width ? this._getRightBoundary() >= 0 : true;
+    }
+
+    /**
+     * 滚动到顶部
+     * @param duration 动画时间
+     */
+    public scrollToTop(duration: number = 0.3) {
+        if (this.direction !== E_UiScrollView_Direction.Horizontal && this._getDataOfOutSize().height) {
+            this._scrollBy(new Vec2(0, this._getTopBoundary()), duration);
+        }
+    }
+
+    /**
+     * 滚动到底部
+     * @param duration 动画时间
+     */
+    public scrollToBottom(duration: number = 0.3) {
+        if (this.direction !== E_UiScrollView_Direction.Horizontal && this._getDataOfOutSize().height) {
+            this._scrollBy(new Vec2(0, -this._getBottomBoundary()), duration);
+        }
+    }
+
+    /**
+     * 滚动到左部
+     * @param duration 动画时间
+     */
+    public scrollToLeft(duration: number = 0.3) {
+        if (this.direction !== E_UiScrollView_Direction.Vertical) {
+            this._scrollBy(new Vec2(-this._getLeftBoundary(), 0), duration);
+        }
+    }
+
+    /**
+     * 滚动到右部
+     * @param duration 动画时间
+     */
+    public scrollToRight(duration: number = 0.3) {
+        if (this.direction !== E_UiScrollView_Direction.Vertical) {
+            this._scrollBy(new Vec2(this._getRightBoundary(), 0), duration);
+        }
+    }
+
+    /**
+     * 滚动到指定索引的子项位置
+     * // TODO 子项与内容节点的相对位置是固定的，所以只要滚动他们之间的相对距离即可，但是可能会出现滚动后超出视图的情况，因此滚动前需要额外检查是否超出视图
+     * @param index 指定索引的子项
+     */
+    public scrollToItem(index: number) {}
+
+    /**
+     * 滚动到百分比位置
+     * // TODO 与scrollToItem同理
+     * @param xPercent 水平百分比
+     * @param yPercent 垂直百分比
+     */
+    public scrollToPercent(xPercent: number, yPercent: number) {}
+
+    /**
+     * 滚动指定偏移量
+     * @param offset 偏移量
+     * @param duration 动画时间
+     */
+    protected _scrollBy(offset: Vec2, duration: number) {
+        Tween.stopAllByTag(E_UiSwrollView_TweenTag.Scroll);
+        const current = this.contentNode.position;
+        const after = new Vec3(current.x + offset.x, current.y + offset.y);
+        tween(current)
+            .tag(E_UiSwrollView_TweenTag.Scroll)
+            .to(duration, after, {
+                easing: "sineOut",
+                onUpdate: (pos: Vec3) => {
+                    this._onScrolling(pos.x, pos.y);
+                    this.contentNode.setPosition(pos);
+                },
+            })
+            .call(this._onScrollFinished.bind(this))
+            .start();
     }
 
     // REGION ENDED <protected>
