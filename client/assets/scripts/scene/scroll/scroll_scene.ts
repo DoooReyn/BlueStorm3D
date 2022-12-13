@@ -1,4 +1,17 @@
-import { _decorator, Node, EventTouch, Vec2, Enum, UITransform, Vec3, tween, Tween, sys } from "cc";
+import {
+    _decorator,
+    Node,
+    EventTouch,
+    Vec2,
+    Enum,
+    UITransform,
+    Vec3,
+    tween,
+    Tween,
+    sys,
+    TERRAIN_NORTH_INDEX,
+    clamp01,
+} from "cc";
 import { Gossip } from "../../base/ui/add_ons/gossip";
 const { ccclass, property } = _decorator;
 
@@ -39,6 +52,8 @@ enum E_UiScrollView_Event {
     ScrollFinished = "scroll-finished",
     Scrolling = "scrolling",
 }
+
+const SCROLL_DURATION = 0.167;
 
 /**
  * Url      : db://assets/scripts/scene/scroll/scroll_scene.ts
@@ -93,11 +108,21 @@ export class ScrollScene extends Gossip {
      */
     private _touchLocMarks: [Vec2, number][] = [];
 
+    /**
+     * 初始位置
+     */
+    private _oriPos: Vec3 = Vec3.ZERO;
+
     // REGION ENDED <Member Variables>
 
     // REGION START <protected>
 
+    protected onLoad() {
+        this._oriPos = this.contentNode.position.clone();
+    }
+
     protected onEnable() {
+        // FIXME: The next line exists for temporary use, Please remove it in production environment
         (<any>window).sv = this;
         this.maskNode.on(Node.EventType.TOUCH_START, this._onTouchStart, this, true);
         this.maskNode.on(Node.EventType.TOUCH_MOVE, this._onTouchMove, this, true);
@@ -179,7 +204,7 @@ export class ScrollScene extends Gossip {
             this._addTouchLocMark(e.getLocation());
             let info = this._getTouchLocMarksInfo();
             if (info.valid) {
-                this._scrollByInertia(info.dist);
+                this._scrollByInertia(info.dist, info.time);
             } else {
                 this._checkBoundaryBounce();
             }
@@ -249,8 +274,8 @@ export class ScrollScene extends Gossip {
      * @param distance 距离
      * @returns
      */
-    protected _calculateAttenuatedFactor(distance: number) {
-        return this.inertiaDuration * distance * 0.00000003;
+    protected _calculateAttenuatedFactor(distance: number, deltaTime: number) {
+        return (distance / Math.max(0.01, deltaTime)) * 0.05;
     }
 
     /**
@@ -259,7 +284,11 @@ export class ScrollScene extends Gossip {
      */
     protected _checkIfHorizontalBounced() {
         const contentOutOfMask = this._getDataOfOutSize();
-        return contentOutOfMask.width && (this._getLeftBoundary() > 0 || this._getRightBoundary() > 0);
+        if (contentOutOfMask) {
+            const lx = this._getLeftBoundary();
+            const rx = this._getRightBoundary();
+            return (lx <= 0 && rx >= 0) || (lx >= 0 && rx <= 0);
+        }
     }
 
     /**
@@ -275,20 +304,12 @@ export class ScrollScene extends Gossip {
      * 惯性滚动
      * @param offset 移动偏移量
      */
-    protected _scrollByInertia(offset: Vec2) {
+    protected _scrollByInertia(offset: Vec2, deltaTime: number) {
         let bounced = false;
-        const cuiTrans = this.contentNode.getComponent(UITransform);
-        const muiTrans = this.maskNode.getComponent(UITransform);
-        const totalMoveWidth = cuiTrans.width - muiTrans.width;
-        const totalMoveHeight = cuiTrans.height - muiTrans.height;
-        const attenuatedFactorX = this._calculateAttenuatedFactor(totalMoveWidth);
-        const attenuatedFactorY = this._calculateAttenuatedFactor(totalMoveHeight);
-        offset.x = offset.x * totalMoveWidth * this.inertiaDuration * attenuatedFactorX;
-        offset.y = offset.y * totalMoveHeight * this.inertiaDuration * attenuatedFactorY;
-        offset.x = Math.max(10, Math.abs(offset.x)) * Math.sign(offset.x);
-        offset.y = Math.max(10, Math.abs(offset.y)) * Math.sign(offset.y);
+        offset.x = this._calculateAttenuatedFactor(offset.x, deltaTime) * this.inertiaDuration;
+        offset.y = this._calculateAttenuatedFactor(offset.y, deltaTime) * this.inertiaDuration;
 
-        const duration = 0.5 / (1.5 - this.inertiaDuration);
+        const duration = this.inertiaDuration;
         Tween.stopAllByTag(E_UiSwrollView_TweenTag.Inertia);
         tween(offset)
             .tag(E_UiSwrollView_TweenTag.Inertia)
@@ -299,9 +320,9 @@ export class ScrollScene extends Gossip {
                         Tween.stopAllByTag(E_UiSwrollView_TweenTag.Inertia);
                         this._checkBoundaryBounce();
                     } else {
-                        if (this.direction === E_UiScrollView_Direction.Vertical) {
+                        if (this.isVerticalOnly) {
                             bounced = this._checkIfVerticalBounced();
-                        } else if (this.direction === E_UiScrollView_Direction.Horizontal) {
+                        } else if (this.isHorizontalOnly) {
                             bounced = this._checkIfHorizontalBounced();
                         } else {
                             bounced = this._checkIfHorizontalBounced();
@@ -331,7 +352,7 @@ export class ScrollScene extends Gossip {
             case E_UiScrollView_Boundary.Left:
                 return muiTrans.width * muiTrans.anchorX + position.x - cuiTrans.anchorX * cuiTrans.width;
             case E_UiScrollView_Boundary.Right:
-                return muiTrans.width * muiTrans.anchorX - position.x - cuiTrans.anchorX * cuiTrans.width;
+                return -(cuiTrans.width - muiTrans.width + this._getLeftBoundary());
             case E_UiScrollView_Boundary.Top:
                 return muiTrans.height - cuiTrans.height - this._getBottomBoundary();
             case E_UiScrollView_Boundary.Bottom:
@@ -380,9 +401,13 @@ export class ScrollScene extends Gossip {
         position.add3f(offset.x, 0, 0);
         let lx = this._getLeftBoundary();
         let rx = this._getRightBoundary();
+        // this.i("check horizontal", lx, rx);
         if (this._getDataOfOutSize().width) {
-            lx > 0 && position.add3f(-lx, 0, 0);
-            rx > 0 && position.add3f(rx, 0, 0);
+            if (lx > 0) {
+                position.add3f(-lx, 0, 0);
+            } else {
+                rx > 0 && position.add3f(rx, 0, 0);
+            }
         } else {
             position.add3f((rx - lx) / 2, 0, 0);
         }
@@ -398,9 +423,13 @@ export class ScrollScene extends Gossip {
         position.add3f(0, offset.y, 0);
         let ty = this._getTopBoundary();
         let by = this._getBottomBoundary();
+        // this.i("check horizontal", ty, by);
         if (this._getDataOfOutSize().height) {
-            by > 0 && position.add3f(0, -by, 0);
-            ty > 0 && position.add3f(0, ty, 0);
+            if (ty > 0) {
+                position.add3f(0, ty, 0);
+            } else {
+                by > 0 && position.add3f(0, -by, 0);
+            }
         } else {
             position.add3f(0, ty, 0);
         }
@@ -411,11 +440,11 @@ export class ScrollScene extends Gossip {
      * 检查最终位置偏移
      */
     protected _checkFinalOffset(offset: Vec2 = Vec2.ZERO) {
-        if (this.direction === E_UiScrollView_Direction.Horizontal) {
+        if (this.isHorizontalOnly) {
             this._checkHorizontalOffset(offset);
-        } else if (this.direction === E_UiScrollView_Direction.Vertical) {
+        } else if (this.isVerticalOnly) {
             this._checkVerticalOffset(offset);
-        } else if (this.direction === E_UiScrollView_Direction.Both) {
+        } else if (this.isBothEnabled) {
             this._checkHorizontalOffset(offset);
             this._checkVerticalOffset(offset);
         }
@@ -438,11 +467,11 @@ export class ScrollScene extends Gossip {
     protected _moveByOffset(offset: Vec2 = Vec2.ZERO) {
         let position = this.contentNode.position;
         if (this.bouncable) {
-            if (this.direction === E_UiScrollView_Direction.Horizontal) {
+            if (this.isHorizontalOnly) {
                 position.add3f(offset.x, 0, 0);
-            } else if (this.direction === E_UiScrollView_Direction.Vertical) {
+            } else if (this.isVerticalOnly) {
                 position.add3f(0, offset.y, 0);
-            } else if (this.direction === E_UiScrollView_Direction.Both) {
+            } else if (this.isBothEnabled) {
                 position.add3f(offset.x, offset.y, 0);
             }
             this._isMoved = true;
@@ -516,7 +545,6 @@ export class ScrollScene extends Gossip {
     protected _onScrolling(x: number, y: number) {
         this.node.emit(E_UiScrollView_Event.Scrolling, this, x, y);
         // this.i("onScrolling", x, y);
-        this.i("scroll:", this.isScrollToTop(), this.isScrollToBottom(), this.isScrollToLeft(), this.isScrollToRight());
     }
 
     /**
@@ -528,93 +556,6 @@ export class ScrollScene extends Gossip {
         this.node.emit(E_UiScrollView_Event.ScrollFinished, this, x, y);
         // this.i("onScrollFinished", x, y);
     }
-
-    /**
-     * 是否已滚动到顶部
-     * @returns
-     */
-    public isScrollToTop() {
-        return this._getDataOfOutSize().height ? this._getTopBoundary() >= 0 : true;
-    }
-
-    /**
-     * 是否已滚动到底部
-     * @returns
-     */
-    public isScrollToBottom() {
-        return this._getDataOfOutSize().height ? this._getBottomBoundary() >= 0 : true;
-    }
-
-    /**
-     * 是否已滚动到左部
-     * @returns
-     */
-    public isScrollToLeft() {
-        return this._getDataOfOutSize().width ? this._getLeftBoundary() >= 0 : true;
-    }
-
-    /**
-     * 是否已滚动到右部
-     * @returns
-     */
-    public isScrollToRight() {
-        return this._getDataOfOutSize().width ? this._getRightBoundary() >= 0 : true;
-    }
-
-    /**
-     * 滚动到顶部
-     * @param duration 动画时间
-     */
-    public scrollToTop(duration: number = 0.3) {
-        if (this.direction !== E_UiScrollView_Direction.Horizontal && this._getDataOfOutSize().height) {
-            this._scrollBy(new Vec2(0, this._getTopBoundary()), duration);
-        }
-    }
-
-    /**
-     * 滚动到底部
-     * @param duration 动画时间
-     */
-    public scrollToBottom(duration: number = 0.3) {
-        if (this.direction !== E_UiScrollView_Direction.Horizontal && this._getDataOfOutSize().height) {
-            this._scrollBy(new Vec2(0, -this._getBottomBoundary()), duration);
-        }
-    }
-
-    /**
-     * 滚动到左部
-     * @param duration 动画时间
-     */
-    public scrollToLeft(duration: number = 0.3) {
-        if (this.direction !== E_UiScrollView_Direction.Vertical) {
-            this._scrollBy(new Vec2(-this._getLeftBoundary(), 0), duration);
-        }
-    }
-
-    /**
-     * 滚动到右部
-     * @param duration 动画时间
-     */
-    public scrollToRight(duration: number = 0.3) {
-        if (this.direction !== E_UiScrollView_Direction.Vertical) {
-            this._scrollBy(new Vec2(this._getRightBoundary(), 0), duration);
-        }
-    }
-
-    /**
-     * 滚动到指定索引的子项位置
-     * // TODO 子项与内容节点的相对位置是固定的，所以只要滚动他们之间的相对距离即可，但是可能会出现滚动后超出视图的情况，因此滚动前需要额外检查是否超出视图
-     * @param index 指定索引的子项
-     */
-    public scrollToItem(index: number) {}
-
-    /**
-     * 滚动到百分比位置
-     * // TODO 与scrollToItem同理
-     * @param xPercent 水平百分比
-     * @param yPercent 垂直百分比
-     */
-    public scrollToPercent(xPercent: number, yPercent: number) {}
 
     /**
      * 滚动指定偏移量
@@ -638,5 +579,270 @@ export class ScrollScene extends Gossip {
             .start();
     }
 
+    protected _scrollTo(loc: Vec3, duration: number) {
+        Tween.stopAllByTag(E_UiSwrollView_TweenTag.Scroll);
+        const current = this.contentNode.position;
+        tween(current)
+            .tag(E_UiSwrollView_TweenTag.Scroll)
+            .to(duration, loc, {
+                easing: "sineOut",
+                onUpdate: (pos: Vec3) => {
+                    this._onScrolling(pos.x, pos.y);
+                    this.contentNode.setPosition(pos);
+                },
+            })
+            .call(this._onScrollFinished.bind(this))
+            .start();
+    }
+
     // REGION ENDED <protected>
+
+    // REGION START <public>
+
+    /**
+     * 水平滚动可用否
+     */
+    public get isHorizontalEnabled() {
+        return this.isHorizontalOnly || this.isBothEnabled;
+    }
+
+    /**
+     * 垂直滚动可用否
+     */
+    public get isVerticalEnabled() {
+        return this.isVerticalOnly || this.isBothEnabled;
+    }
+
+    /**
+     * 任意方向滚动可用否
+     */
+    public get isBothEnabled() {
+        return this.direction === E_UiScrollView_Direction.Both;
+    }
+
+    /**
+     * 水平单向滚动可用否
+     */
+    public get isHorizontalOnly() {
+        return this.direction === E_UiScrollView_Direction.Horizontal;
+    }
+
+    /**
+     * 垂直单向滚动可用否
+     */
+    public get isVerticalOnly() {
+        return this.direction === E_UiScrollView_Direction.Vertical;
+    }
+
+    /**
+     * 是否已滚动到顶部
+     * @returns
+     */
+    public isScrollToTop() {
+        return this._getDataOfOutSize().height ? this._getTopBoundary() >= 0 : true;
+    }
+
+    /**
+     * 是否已滚动到底部
+     * @returns
+     */
+    public isScrollToBottom() {
+        return this._getDataOfOutSize().height ? this._getBottomBoundary() >= 0 : true;
+    }
+
+    /**
+     * 是否已滚动到左部
+     * @returns
+     */
+    public isScrollToLeft() {
+        return this._getDataOfOutSize().width ? this._getLeftBoundary() <= 0 : true;
+    }
+
+    /**
+     * 是否已滚动到右部
+     * @returns
+     */
+    public isScrollToRight() {
+        return this._getDataOfOutSize().width ? this._getRightBoundary() >= 0 : true;
+    }
+
+    /**
+     * 滚动到左上角
+     * @param duration 动画时间
+     */
+    public scrollToTopLeft(duration: number = SCROLL_DURATION) {
+        const out = this._getDataOfOutSize();
+        if (out.width && out.height) {
+            if (this.isBothEnabled) {
+                this.scrollToPercent(0, 0, duration);
+            }
+        }
+    }
+
+    /**
+     * 滚动到右上角
+     * @param duration 动画时间
+     */
+    public scrollToTopRight(duration: number = SCROLL_DURATION) {
+        const out = this._getDataOfOutSize();
+        if (out.width && out.height) {
+            if (this.isBothEnabled) {
+                this.scrollToPercent(1, 0, duration);
+            }
+        }
+    }
+
+    /**
+     * 滚动到左下角
+     * @param duration 动画时间
+     */
+    public scrollToBottomLeft(duration: number = SCROLL_DURATION) {
+        const out = this._getDataOfOutSize();
+        if (out.width && out.height) {
+            if (this.isBothEnabled) {
+                this.scrollToPercent(0, 1, duration);
+            }
+        }
+    }
+
+    /**
+     * 滚动到右下角
+     * @param duration 动画时间
+     */
+    public scrollToBottomRight(duration: number = SCROLL_DURATION) {
+        if (this._getDataOfOutSize().width) {
+            if (this.isBothEnabled) {
+                this.scrollToPercent(1, 1, duration);
+            }
+        }
+    }
+
+    /**
+     * 滚动到顶部
+     * @param duration 动画时间
+     */
+    public scrollToTop(duration: number = SCROLL_DURATION) {
+        if (this._getDataOfOutSize().height) {
+            if (this.isVerticalOnly) {
+                this.scrollToPercent(0, 0, duration);
+            } else if (this.isBothEnabled) {
+                this.scrollToPercent(0, 0, duration, false);
+            }
+        }
+    }
+
+    /**
+     * 滚动到底部
+     * @param duration 动画时间
+     */
+    public scrollToBottom(duration: number = SCROLL_DURATION) {
+        if (this._getDataOfOutSize().height) {
+            if (this.isVerticalOnly) {
+                this.scrollToPercent(0, 1, duration);
+            } else if (this.isBothEnabled) {
+                this.scrollToPercent(0, 1, duration, false);
+            }
+        }
+    }
+
+    /**
+     * 滚动到左部
+     * @param duration 动画时间
+     */
+    public scrollToLeft(duration: number = SCROLL_DURATION) {
+        if (this._getDataOfOutSize().width) {
+            if (this.isHorizontalOnly) {
+                this.scrollToPercent(0, 0, duration);
+            } else if (this.isBothEnabled) {
+                this.scrollToPercent(0, 0, duration, true, false);
+            }
+        }
+    }
+
+    /**
+     * 滚动到右部
+     * @param duration 动画时间
+     */
+    public scrollToRight(duration: number = SCROLL_DURATION) {
+        if (this._getDataOfOutSize().width) {
+            if (this.isHorizontalOnly) {
+                this.scrollToPercent(1, 0, duration);
+            } else if (this.isBothEnabled) {
+                this.scrollToPercent(1, 0, duration, true, false);
+            }
+        }
+    }
+
+    /**
+     * 滚动到指定索引的子项位置
+     * @param index 指定索引的子项
+     * @param duration 动画时间
+     */
+    public scrollToItem(index: number, duration: number = SCROLL_DURATION) {
+        index = index | 0;
+        let mui = this.maskNode.getComponent(UITransform);
+        let cui = this.contentNode.getComponent(UITransform);
+        if (index >= 0 && index < this.contentNode.children.length) {
+            let item = this.contentNode.children[index];
+            let tui = item.getComponent(UITransform);
+            let target = this._oriPos.clone();
+            if (this.isHorizontalEnabled) {
+                let hof = item.position.x - tui.width * (0.5 - cui.anchorX);
+                let ubf = cui.width - mui.width;
+                if (hof > ubf) hof = ubf;
+                target.x = this._oriPos.x - hof;
+            }
+            if (this.isVerticalEnabled) {
+                let vof = item.position.y + tui.height * (1 - tui.anchorY);
+                let ubf = cui.height - mui.height;
+                -vof > ubf && (vof = -ubf);
+                target.y = this._oriPos.y - vof;
+            }
+            this._scrollTo(target, duration);
+        }
+    }
+
+    /**
+     * 滚动到百分比位置
+     * @param xPercent 水平百分比
+     * @param yPercent 垂直百分比
+     * @param duration 动画时间
+     */
+    public scrollToPercent(
+        xPercent: number,
+        yPercent: number,
+        duration: number = SCROLL_DURATION,
+        xEnabled: boolean = true,
+        yEnabled: boolean = true
+    ) {
+        xPercent = clamp01(xPercent);
+        yPercent = clamp01(yPercent);
+        const mui = this.maskNode.getComponent(UITransform);
+        const cui = this.contentNode.getComponent(UITransform);
+        const pos = new Vec3(cui.width * xPercent, -cui.height * yPercent);
+        let target = this._oriPos.clone();
+        if (this.isHorizontalEnabled) {
+            if (xEnabled) {
+                let hof = pos.x;
+                let ubf = cui.width - mui.width;
+                if (hof > ubf) hof = ubf;
+                target.x = this._oriPos.x - hof;
+            } else {
+                target.x = this.contentNode.position.x;
+            }
+        }
+        if (this.isVerticalEnabled) {
+            if (yEnabled) {
+                let vof = pos.y;
+                let ubf = cui.height - mui.height;
+                -vof > ubf && (vof = -ubf);
+                target.y = this._oriPos.y - vof;
+            } else {
+                target.y = this.contentNode.position.y;
+            }
+        }
+        this._scrollTo(target, duration);
+    }
+
+    // REGION ENDED <public>
 }
