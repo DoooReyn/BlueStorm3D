@@ -5,8 +5,6 @@
  * Desc     : 辅助方法
  */
 
-import { utils } from "cc";
-
 /**
  * @zh
  * 一般方法回调处理类型定义
@@ -70,5 +68,3 @@ export function disableDomErrorNode() {
     const node = document.querySelector("#error");
     node && node.parentElement.removeChild(node);
 }
-
-(<any>window).utils = utils;

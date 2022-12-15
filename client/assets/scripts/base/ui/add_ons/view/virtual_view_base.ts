@@ -92,7 +92,6 @@ export abstract class VirtualViewBase extends Gossip {
     // REGION START <protected>
 
     protected onLoad() {
-        (<any>window)[this.node.name] = this;
         this._mui = getUiTransformOf(this.maskNode);
         this._cui = getUiTransformOf(this.contentNode);
     }

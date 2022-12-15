@@ -19,5 +19,3 @@ export const UiMap = {
     // Tip
     ItemUseTip: UiInfo.from({ path: "prefab/tip/item_use_tip" }),
 };
-
-(<any>window).UiMap = UiMap;
