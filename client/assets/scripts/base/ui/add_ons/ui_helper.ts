@@ -1,4 +1,4 @@
-import { Node, Button, Component, EventHandler, Constructor } from "cc";
+import { Node, Button, Component, EventHandler, Constructor, UITransform } from "cc";
 
 /**
  * 在节点上部署组件
@@ -55,4 +55,13 @@ export function setupDefaultBundle(info: { [key: string]: any; bundle?: string }
         info.bundle = info.bundle || "resources";
     }
     return info;
+}
+
+/**
+ * 获得指定节点的 UITransform 组件
+ * @param node 指定节点
+ * @returns
+ */
+export function getUiTransformOf(node: Node) {
+    return setupComponent(node, UITransform);
 }

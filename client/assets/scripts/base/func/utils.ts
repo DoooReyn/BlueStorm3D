@@ -5,6 +5,8 @@
  * Desc     : 辅助方法
  */
 
+import { utils } from "cc";
+
 /**
  * @zh
  * 一般方法回调处理类型定义
@@ -66,7 +68,7 @@ export function runInSandbox(handler: { onExcute: Function; onError?: T_ErrorHan
  */
 export function disableDomErrorNode() {
     const node = document.querySelector("#error");
-    if (node) {
-        node.parentElement.removeChild(node);
-    }
+    node && node.parentElement.removeChild(node);
 }
+
+(<any>window).utils = utils;

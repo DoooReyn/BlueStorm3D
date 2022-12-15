@@ -40,7 +40,7 @@ export class Gossip extends Component {
      * @param component 组件
      * @returns
      */
-    setupComponent<T extends Component>(component: Constructor<T>): T {
+    protected setupComponent<T extends Component>(component: Constructor<T>): T {
         return this.getComponent(component) || this.addComponent(component);
     }
 }
