@@ -55,6 +55,11 @@ export abstract class VirtualViewBase extends Gossip {
     public static readonly EVENT_BOUNCE_FINISH = "bounce-finish";
 
     /**
+     * 子项移除事件
+     */
+    public static readonly EVENT_ITEM_REMOVE_FROM_VIEW = "remove-from-view";
+
+    /**
      * 视图节点
      */
     @property({ displayName: "视图节点", type: Node })

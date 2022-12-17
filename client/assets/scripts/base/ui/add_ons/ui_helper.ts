@@ -1,4 +1,4 @@
-import { Node, Button, Component, EventHandler, Constructor, UITransform } from "cc";
+import { Node, Button, Component, EventHandler, Constructor, UITransform, rect, game } from "cc";
 
 /**
  * 在节点上部署组件
@@ -65,3 +65,20 @@ export function setupDefaultBundle(info: { [key: string]: any; bundle?: string }
 export function getUiTransformOf(node: Node) {
     return setupComponent(node, UITransform);
 }
+
+/**
+ * 获得指定节点的世界包围盒
+ * @param node 当前节点
+ * @param project 投射节点
+ * @returns
+ */
+export function getWorldBoundindBoxOf(node: Node, project: Node) {
+    const nui = getUiTransformOf(node);
+    const np = nui.convertToWorldSpaceAR(project.position);
+    return rect(np.x - nui.width * 0.5, np.y - nui.height * 0.5, nui.width, nui.height);
+}
+
+/**
+ * 每帧消耗的时间
+ */
+export const TimeOfPerFrame = 1.0 / (game.frameRate as number);

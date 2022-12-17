@@ -1,5 +1,5 @@
 import { _decorator, Node, EventTouch, TweenEasing, Enum, Vec2, sys, Tween, tween, Vec3, clamp01 } from "cc";
-import { getUiTransformOf } from "../ui_helper";
+import { getUiTransformOf, TimeOfPerFrame } from "../ui_helper";
 import { VirtualViewBase } from "./virtual_view_base";
 const { ccclass, property } = _decorator;
 
@@ -335,14 +335,14 @@ export abstract class ScrollViewBase extends VirtualViewBase {
     /**
      * 位置校正，包括回弹
      */
-    protected _checkBoundaryBounce(force: boolean = false) {
-        if ((this.bouncable && this._isMoved) || force) {
+    protected _checkBoundaryBounce(forceDuration: number = 0) {
+        if ((this.bouncable && this._isMoved) || forceDuration > 0) {
             this.stopScroll();
             const before = this.contentNode.position.clone();
             this._checkMoveWithNoBounce(Vec2.ZERO);
             const after = this.contentNode.position.clone();
             this.contentNode.position.set(before);
-            const duration = force ? 0 : this.bounceDuration;
+            const duration = forceDuration || this.bounceDuration;
             tween(this.contentNode.position)
                 .to(duration, after, {
                     easing: "sineOut",
@@ -658,6 +658,13 @@ export abstract class ScrollViewBase extends VirtualViewBase {
             }
             this._scrollTo(target, duration, easing);
         }
+    }
+
+    /**
+     * 刷新视图
+     */
+    public refreshView() {
+        this._checkBoundaryBounce(TimeOfPerFrame * 10);
     }
 
     // REGION ENDED <public>

@@ -45,3 +45,60 @@ export function shuffle3(list: any[]) {
         return Math.random() - 0.5;
     });
 }
+
+/**
+ * 从小到大排序
+ * @param numberArr 数字数组
+ * @returns
+ */
+export function sortByAscending(numberArr: number[]) {
+    return numberArr.sort((a, b) => a - b);
+}
+
+/**
+ * 从大到小排序
+ * @param numberArr 数字数组
+ * @returns
+ */
+export function sortByDescending(numberArr: number[]) {
+    return numberArr.sort((a, b) => b - a);
+}
+
+/**
+ * 数组去重
+ * @param arr 原始数组
+ * @returns
+ */
+export function removeDuplicated(arr: any[]) {
+    return arr.filter(function (item, index, arr) {
+        return arr.indexOf(item, 0) === index;
+    });
+}
+
+/**
+ * 获得指定范围内的数值数组
+ * @param start 起始数值
+ * @param ended 终止数值
+ * @param step 增进步幅
+ * @returns
+ */
+export function range(start: number, ended: number, step: number = 1) {
+    start = start | 0;
+    ended = ended | 0;
+    step = step | 0;
+    let ret = [];
+    if (step > 0) {
+        [start, ended] = ended > start ? [start, ended] : [ended, start];
+        for (let i = start; i <= ended; i += step) {
+            ret.push(i);
+        }
+    } else if (step === 0) {
+        ret.push(start, ended);
+    } else {
+        [start, ended] = ended > start ? [start, ended] : [ended, start];
+        for (let i = ended; i >= start; i += step) {
+            ret.push(i);
+        }
+    }
+    return ret;
+}

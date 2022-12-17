@@ -348,9 +348,10 @@ export class DynamicResMgr extends SingletonBase {
      * 替换组件使用的资源
      * @param component 渲染组件
      * @param asset 资源
+     * @param deprecatedAtFirst 是否先释放占用资源，默认是
      */
-    public replace<C extends UIRenderer, R extends Asset>(component: C, asset: R) {
-        this.deprecated(component);
+    public replace<C extends UIRenderer, R extends Asset>(component: C, asset: R, deprecatedAtFirst: boolean = true) {
+        deprecatedAtFirst && this.deprecated(component);
 
         if (component instanceof Sprite) {
             if (asset && asset.isValid && asset instanceof SpriteFrame && this._hasCache(asset)) {

@@ -37,3 +37,17 @@ export class AutomaticValue<T extends string | number | boolean> {
      */
     protected _onValueChanged(prev: T, current: T) {}
 }
+
+export class AutomaticBooleanValue extends AutomaticValue<boolean> {
+    public set() {
+        this.value = true;
+    }
+
+    public unset() {
+        this.value = false;
+    }
+
+    public isset() {
+        return this.value;
+    }
+}

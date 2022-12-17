@@ -21,7 +21,7 @@ export class ScrollVerticalView extends ScrollViewBase {
     // REGION START <protected>
 
     /**
-     * // WARNING
+     * 初始化
      * - 初始化时会强制将容器节点的锚点修改为 `(0.5, 1)`
      * - 此举是为了保证初始位置的准确性
      * - 建议按照默认锚点布置子节点
@@ -87,6 +87,15 @@ export class ScrollVerticalView extends ScrollViewBase {
      */
     public isScrollToBottom() {
         return this._isScrollToCorner(E_UiScrollView_Corner.BOTTOM);
+    }
+
+    /**
+     * 获取需要预加载的数量
+     * @param size 预制体尺寸
+     * @returns
+     */
+    public getPreloadCount(size: math.ISizeLike) {
+        return ((this._mui.height / size.height) | 0) + 2;
     }
 
     // REGION ENDED <public>

@@ -21,7 +21,7 @@ export class ScrollBothView extends ScrollViewBase {
     // REGION START <protected>
 
     /**
-     * // WARNING
+     * 初始化
      * - 初始化时会强制将容器节点的锚点修改为 `(0, 1)`
      * - 此举是为了保证初始位置的准确性
      * - 建议按照默认锚点布置子节点

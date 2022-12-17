@@ -68,3 +68,27 @@ export function disableDomErrorNode() {
     const node = document.querySelector("#error");
     node && node.parentElement.removeChild(node);
 }
+
+/**
+ * 是否对象类型
+ * @param args 参数
+ * @returns
+ */
+export function isObject(args: any) {
+    return (typeof args === "object" || typeof args === "function") && typeof args !== null;
+}
+
+/**
+ * 深度拷贝
+ * @param obj 值
+ * @returns
+ */
+export function deepClone<T>(obj: T): T {
+    if (!isObject(obj)) return obj;
+
+    let newObj = Array.isArray(obj) ? [...obj] : { ...obj };
+    Reflect.ownKeys(newObj as any).map((key) => {
+        newObj[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key];
+    });
+    return newObj as T;
+}
