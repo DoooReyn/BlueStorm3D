@@ -1,8 +1,8 @@
-import { _decorator, Component } from "cc";
+import { _decorator } from "cc";
 import { disableDomErrorNode } from "../../base/func/utils";
 import { ScrollFixedViewBase } from "../../base/ui/add_ons/view/scroll_fixed_view_base";
 import { ScrollVerticalView } from "../../base/ui/add_ons/view/scroll_vertical_view";
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 export interface I_Fixed_Data {
     id: number;
