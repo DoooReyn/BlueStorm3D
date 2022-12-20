@@ -572,6 +572,13 @@ export abstract class ScrollViewBase extends VirtualViewBase {
     // REGION START <public>
 
     /**
+     * 获取滚动方向
+     */
+    public get scrollDirection() {
+        return this.direction;
+    }
+
+    /**
      * 水平滚动可用否
      */
     public get isHorizontalEnabled() {
