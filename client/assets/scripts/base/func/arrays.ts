@@ -102,3 +102,62 @@ export function range(start: number, ended: number, step: number = 1) {
     }
     return ret;
 }
+
+/**
+ * 累加
+ * @param arr 数值数组
+ * @returns
+ */
+export function sumOf(arr: number[]) {
+    return arr.reduce((a, b) => a + b, 0);
+}
+
+/**
+ * 乘积
+ * @param arr 数值数组
+ * @returns
+ */
+export function productOf(arr: number[]) {
+    return arr.reduce((a, b) => a * b, 1);
+}
+
+/**
+ * 双向循环队列
+ */
+export class LoopQueue<T> extends Array {
+    /**
+     * 前进一步
+     */
+    public forwards() {
+        this.length >= 1 && this.unshift(this.pop());
+    }
+
+    /**
+     * 后退一步
+     */
+    public backwards() {
+        this.length >= 1 && this.push(this.shift());
+    }
+
+    /**
+     * 截取第一个到指定个数的数组
+     */
+    public headTo(count: number): T[] {
+        return this.slice(0, count | 0);
+    }
+
+    /**
+     * 截取从最后一个到指定个数的数组
+     */
+    public backTo(count: number): T[] {
+        return this.slice((this.length - count) | 0, this.length);
+    }
+
+    /**
+     * 转换为字符串
+     * @returns
+     */
+    public toString(): string {
+        return this.map((v) => v.toString()).join(",");
+    }
+}
