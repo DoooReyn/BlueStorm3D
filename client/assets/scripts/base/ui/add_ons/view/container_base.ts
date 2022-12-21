@@ -38,7 +38,7 @@ export class ViewItemEvent extends Event {
 @ccclass("container_base")
 export class Container<T> extends Gossip {
     /**
-     * 容器在列表视图中的索引
+     * 容器在视图中的索引
      */
     private _index: number = -1;
 
@@ -98,14 +98,14 @@ export class Container<T> extends Gossip {
     }
 
     /**
-     * 设置容器在列表视图中的索引
+     * 设置容器在视图中的索引
      */
     public set index(index: number) {
         this._index = index;
     }
 
     /**
-     * 获取容器在列表视图中的索引
+     * 获取容器在视图中的索引
      */
     public get index() {
         return this._index;

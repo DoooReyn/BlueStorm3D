@@ -1,4 +1,5 @@
-import { _decorator, Component } from 'cc';
+import { Label, _decorator } from "cc";
+import { Gossip } from "../gossip";
 const { ccclass, property } = _decorator;
 
 /**
@@ -6,21 +7,31 @@ const { ccclass, property } = _decorator;
  * Author   : reyn
  * Date     : Sat Dec 10 2022 10:08:01 GMT+0800 (中国标准时间)
  * Class    : PageItem
- * Desc     : 
+ * Desc     :
  */
-@ccclass('page_item')
-export class PageItem extends Component {
+@ccclass("page_item")
+export class PageItem extends Gossip {
     // REGION START <Member Variables>
 
-    // @property({displayName: "", type: Component})
-    // member: Component = null;
-    
+    @property({ displayName: "文本", type: Label })
+    label: Label = null;
+
     // REGION ENDED <Member Variables>
 
     // REGION START <protected>
 
-    protected onLoad() {
-        super.onLoad && super.onLoad();
+    // protected onEnable() {
+    //     this.node.on("display", this._onDisplay, this);
+    // }
+
+    // protected onDisable() {
+    //     this.node.off("display", this._onDisplay, this);
+    // }
+
+    public display(visible: boolean, index: number) {
+        if (visible) {
+            this.label.string = `This is page ${index + 1}`;
+        }
     }
 
     // REGION ENDED <protected>
@@ -30,6 +41,4 @@ export class PageItem extends Component {
     // public test() {}
 
     // REGION ENDED <public>
-
 }
-
