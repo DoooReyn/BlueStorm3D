@@ -4,6 +4,7 @@ import { getWorldBoundindBoxOf } from "../ui_helper";
 import { Gossip } from "../gossip";
 import { ContainerPage } from "./container_page";
 import { E_Container_Event } from "./container_base";
+import { E_Cmm_Direction, I_Cmm_Boundary, I_SlideDirectionInfo } from "../../../func/declares";
 const { ccclass, property } = _decorator;
 
 /**
@@ -19,16 +20,6 @@ export enum E_UiPageView_TurnMode {
 }
 
 /**
- * 翻页虚拟方向
- * - Backward: 上一页
- * - Forward: 下一页
- */
-export enum E_UiPageView_Direction {
-    Backward = -1,
-    Forward = 1,
-}
-
-/**
  * 翻页真实方向
  * - Horizontal: 左右翻页
  * - Vertical: 上下翻页
@@ -36,25 +27,6 @@ export enum E_UiPageView_Direction {
 export enum E_UiPageView_FromTo {
     Horizontal,
     Vertical,
-}
-
-/**
- * 边界原型
- */
-export interface I_Boundary {
-    left: number;
-    right: number;
-    top: number;
-    bottom: number;
-    toString(): string;
-}
-
-/**
- * 滑动方向信息
- */
-export interface I_SlideDirectionInfo {
-    scrollable: boolean;
-    dir: E_UiPageView_Direction;
 }
 
 /**
@@ -84,6 +56,12 @@ export class PageViewBase extends Gossip {
 
     @property({ displayName: "内容节点", type: Node })
     public contentNode: Node = null;
+
+    @property({ displayName: "向前翻页按钮", type: Node })
+    protected btnBackward: Node = null;
+
+    @property({ displayName: "向后翻页按钮", type: Node })
+    protected btnForward: Node = null;
 
     @property({ displayName: "占位容器-上一页", type: ContainerPage })
     protected containerBackward: ContainerPage = null;
@@ -123,7 +101,7 @@ export class PageViewBase extends Gossip {
     /**
      * 当前页
      */
-    protected _current: number = 0;
+    protected _current: number = -1;
 
     /**
      * 时间记录点
@@ -175,6 +153,7 @@ export class PageViewBase extends Gossip {
     protected start() {
         this.refreshMaskBox();
         this._syncLocations();
+        this.turnTo(0);
         this._checkContainersVisible();
     }
 
@@ -188,6 +167,10 @@ export class PageViewBase extends Gossip {
      * 页码切换
      */
     protected _onPageChanged() {
+        if (!this.infinite) {
+            this.btnBackward && (this.btnBackward.active = this._current > 0);
+            this.btnForward && (this.btnForward.active = this._current < this.pageSize - 1);
+        }
         this.node.emit(E_UiPageView_Event.PageChanged, this._current, this);
     }
 
@@ -236,10 +219,10 @@ export class PageViewBase extends Gossip {
      * 获取当前虚拟容器的边界
      * @returns
      */
-    protected _getBoundary(): I_Boundary {
+    protected _getBoundary(): I_Cmm_Boundary {
         const box1 = getWorldBoundindBoxOf(this._currentContainer.node, this.maskNode);
         const box2 = this._maskBox;
-        const boundary: I_Boundary = {
+        const boundary: I_Cmm_Boundary = {
             left: box1.x - box2.x,
             right: box2.x - box1.x,
             top: box2.y - box1.y,
@@ -276,11 +259,11 @@ export class PageViewBase extends Gossip {
         const dir = this._getScrollDirByOffset(delta);
         const boundary = this._getBoundary();
         if (this.isHorizontal) {
-            if (dir === E_UiPageView_Direction.Backward && boundary.left >= this._maskBox.width) return;
-            if (dir === E_UiPageView_Direction.Forward && boundary.left <= -this._maskBox.width) return;
+            if (dir === E_Cmm_Direction.Backward && boundary.left >= this._maskBox.width) return;
+            if (dir === E_Cmm_Direction.Forward && boundary.left <= -this._maskBox.width) return;
         } else {
-            if (dir === E_UiPageView_Direction.Backward && boundary.bottom >= this._maskBox.height) return;
-            if (dir === E_UiPageView_Direction.Forward && boundary.bottom <= -this._maskBox.height) return;
+            if (dir === E_Cmm_Direction.Backward && boundary.bottom >= this._maskBox.height) return;
+            if (dir === E_Cmm_Direction.Forward && boundary.bottom <= -this._maskBox.height) return;
         }
 
         const moved = !delta.equals(Vec2.ZERO);
@@ -318,7 +301,7 @@ export class PageViewBase extends Gossip {
      */
     protected _getScrollDirByOffset(offset: Vec2) {
         const isForwards = this.isHorizontal ? offset.x < 0 : offset.y > 0;
-        return isForwards ? E_UiPageView_Direction.Forward : E_UiPageView_Direction.Backward;
+        return isForwards ? E_Cmm_Direction.Forward : E_Cmm_Direction.Backward;
     }
 
     /**
@@ -355,8 +338,8 @@ export class PageViewBase extends Gossip {
      * @param dir 滑动方向
      * @param offset 偏移量
      */
-    protected _scrollBy(dir: E_UiPageView_Direction, offset: Vec2) {
-        const isBackwards = dir === E_UiPageView_Direction.Backward;
+    protected _scrollBy(dir: E_Cmm_Direction, offset: Vec2) {
+        const isBackwards = dir === E_Cmm_Direction.Backward;
         const containers = this._containers.slice(...(isBackwards ? [0, 2] : [1, 3]));
         const duration = (this.moveTime * Math.abs(this.isHorizontal ? offset.x : offset.y)) / this.maxDistance;
         this._doScroll(containers, duration, offset);
@@ -367,7 +350,7 @@ export class PageViewBase extends Gossip {
      * @param dir 滑动方向
      * @returns
      */
-    protected _getNextPage(dir: E_UiPageView_Direction) {
+    protected _getNextPage(dir: E_Cmm_Direction) {
         const before = this._current;
         let after = before + dir;
         if (this.infinite) {
@@ -384,8 +367,8 @@ export class PageViewBase extends Gossip {
      * 按指定方向翻页
      * @param dir 翻页方向
      */
-    protected _scrollBywards(dir: E_UiPageView_Direction) {
-        const isBackwards = dir === E_UiPageView_Direction.Backward;
+    protected _scrollBywards(dir: E_Cmm_Direction) {
+        const isBackwards = dir === E_Cmm_Direction.Backward;
         const boundary = this._getBoundary();
         const nextPage = this._getNextPage(dir);
         const containers = this._containers.slice(...(isBackwards ? [0, 2] : [1, 3]));
@@ -455,12 +438,12 @@ export class PageViewBase extends Gossip {
      * 检查边界回弹
      * @param dir 滑动方向
      */
-    protected _checkBoundaryBounce(dir: E_UiPageView_Direction) {
+    protected _checkBoundaryBounce(dir: E_Cmm_Direction) {
         let boundary = this._getBoundary();
         if (this.isHorizontal) {
-            this._scrollBy(dir, new Vec2(dir === E_UiPageView_Direction.Backward ? -boundary.left : boundary.right));
+            this._scrollBy(dir, new Vec2(dir === E_Cmm_Direction.Backward ? -boundary.left : boundary.right));
         } else {
-            this._scrollBy(dir, new Vec2(0, dir === E_UiPageView_Direction.Backward ? boundary.top : -boundary.bottom));
+            this._scrollBy(dir, new Vec2(0, dir === E_Cmm_Direction.Backward ? boundary.top : -boundary.bottom));
         }
     }
 
@@ -550,7 +533,7 @@ export class PageViewBase extends Gossip {
      * @param dir 翻页方向
      * @returns
      */
-    public canAdvance(dir: E_UiPageView_Direction) {
+    public canAdvance(dir: E_Cmm_Direction) {
         const before = this._current;
         const after = this._getNextPage(dir);
         return before !== after && (this.infinite || (!this.infinite && this.isPageValid(after)));
@@ -560,7 +543,7 @@ export class PageViewBase extends Gossip {
      * 按指定方向翻页
      * @param dir 翻页方向
      */
-    public advance(dir: E_UiPageView_Direction) {
+    public advance(dir: E_Cmm_Direction) {
         if (this._scrolling.isset()) return;
         const yes = this.canAdvance(dir);
         yes && this._scrollBywards(dir);
@@ -572,7 +555,7 @@ export class PageViewBase extends Gossip {
      * - 保留动画
      */
     public backwards() {
-        this.advance(E_UiPageView_Direction.Backward);
+        this.advance(E_Cmm_Direction.Backward);
     }
 
     /**
@@ -580,7 +563,7 @@ export class PageViewBase extends Gossip {
      * - 保留动画
      */
     public forwards() {
-        this.advance(E_UiPageView_Direction.Forward);
+        this.advance(E_Cmm_Direction.Forward);
     }
 
     /**
