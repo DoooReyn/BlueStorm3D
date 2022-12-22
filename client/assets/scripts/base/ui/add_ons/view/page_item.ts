@@ -7,7 +7,7 @@ const { ccclass, property } = _decorator;
  * Author   : reyn
  * Date     : Sat Dec 10 2022 10:08:01 GMT+0800 (中国标准时间)
  * Class    : PageItem
- * Desc     :
+ * Desc     : 翻页视图页面子项
  */
 @ccclass("page_item")
 export class PageItem extends Gossip {
@@ -18,27 +18,13 @@ export class PageItem extends Gossip {
 
     // REGION ENDED <Member Variables>
 
-    // REGION START <protected>
+    // REGION START <public>
 
-    // protected onEnable() {
-    //     this.node.on("display", this._onDisplay, this);
-    // }
-
-    // protected onDisable() {
-    //     this.node.off("display", this._onDisplay, this);
-    // }
-
-    public display(visible: boolean, index: number) {
+    public reload(visible: boolean, index: number) {
         if (visible) {
             this.label.string = `This is page ${index + 1}`;
         }
     }
-
-    // REGION ENDED <protected>
-
-    // REGION START <public>
-
-    // public test() {}
 
     // REGION ENDED <public>
 }

@@ -142,14 +142,14 @@ export class LoopQueue<T> extends Array {
     /**
      * 截取第一个到指定个数的数组
      */
-    public headTo(count: number): T[] {
+    public pickFromHead(count: number): T[] {
         return this.slice(0, count | 0);
     }
 
     /**
      * 截取从最后一个到指定个数的数组
      */
-    public backTo(count: number): T[] {
+    public pickToTail(count: number): T[] {
         return this.slice((this.length - count) | 0, this.length);
     }
 

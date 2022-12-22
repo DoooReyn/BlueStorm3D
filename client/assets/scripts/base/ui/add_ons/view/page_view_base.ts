@@ -1,4 +1,4 @@
-import { _decorator, Enum, Node, Rect, EventTouch, Tween, Vec2, sys, CCInteger, Prefab, rect, tween, Vec3 } from "cc";
+import { _decorator, instantiate, sys, tween, Enum, EventTouch, Node, Prefab, Rect, Tween, Vec2, Vec3 } from "cc";
 import { AutomaticBooleanValue } from "../../../func/automatic_value";
 import { getWorldBoundindBoxOf } from "../ui_helper";
 import { Gossip } from "../gossip";
@@ -12,7 +12,7 @@ const { ccclass, property } = _decorator;
  * - Trigger: 触发式，如按钮点击
  * - Both: 双轨式，即滑动式+触发式
  */
-export enum E_UiPageView_TurnType {
+export enum E_UiPageView_TurnMode {
     Slide,
     Trigger,
     Both,
@@ -36,6 +36,33 @@ export enum E_UiPageView_Direction {
 export enum E_UiPageView_FromTo {
     Horizontal,
     Vertical,
+}
+
+/**
+ * 边界原型
+ */
+export interface I_Boundary {
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+    toString(): string;
+}
+
+/**
+ * 滑动方向信息
+ */
+export interface I_SlideDirectionInfo {
+    scrollable: boolean;
+    dir: E_UiPageView_Direction;
+}
+
+/**
+ * 翻页视图事件
+ * - PageChanged: 页码切换
+ */
+export enum E_UiPageView_Event {
+    PageChanged = "on-page-changed",
 }
 
 /**
@@ -67,13 +94,13 @@ export class PageViewBase extends Gossip {
     @property({ displayName: "占位容器-下一页", type: ContainerPage })
     protected containerForward: ContainerPage = null;
 
-    @property({ displayName: "翻页方式", type: Enum(E_UiPageView_TurnType) })
-    protected turnType = E_UiPageView_TurnType.Slide;
+    @property({ displayName: "翻页方式", type: Enum(E_UiPageView_TurnMode) })
+    protected turnMode = E_UiPageView_TurnMode.Slide;
 
     @property({ displayName: "翻页方向", type: Enum(E_UiPageView_FromTo) })
     protected turnDir = E_UiPageView_FromTo.Horizontal;
 
-    @property({ displayName: "页数", step: 1, type: CCInteger })
+    @property({ displayName: "页数", step: 1 })
     protected pages: number = 3;
 
     @property({ displayName: "滑动翻页触发距离(百分比)", range: [0, 1, 0.1] })
@@ -88,17 +115,39 @@ export class PageViewBase extends Gossip {
     @property({ displayName: "无限循环" })
     protected infinite: boolean = false;
 
+    /**
+     * 遮罩世界矩形框
+     */
     protected _maskBox: Rect = null;
-    protected _viewDirty: AutomaticBooleanValue = new AutomaticBooleanValue(false);
 
     /**
      * 当前页
      */
-    protected _current: number = -1;
+    protected _current: number = 0;
+
+    /**
+     * 时间记录点
+     */
     protected _locMarks: number[] = [];
+
+    /**
+     * 移动否
+     */
     protected _moved: AutomaticBooleanValue = new AutomaticBooleanValue(false);
+
+    /**
+     * 正在滑动否
+     */
     protected _scrolling: AutomaticBooleanValue = new AutomaticBooleanValue(false);
+
+    /**
+     * 虚拟容器初始位置数组
+     */
     private _locations: Vec3[] = null;
+
+    /**
+     * 虚拟容器数组
+     */
     private _containers: ContainerPage[] = null;
 
     // REGION ENDED <Member Variables>
@@ -106,14 +155,10 @@ export class PageViewBase extends Gossip {
     // REGION START <protected>
 
     protected onLoad() {
-        this._locations = [this.containerBackward, this.containerCurrent, this.containerForward].map((v) =>
-            v.node.position.clone()
-        );
         this._containers = [this.containerBackward, this.containerCurrent, this.containerForward];
     }
 
     protected onEnable() {
-        this.refreshMaskBox();
         this.maskNode.on(Node.EventType.TOUCH_START, this._onTouchStart, this, true);
         this.maskNode.on(Node.EventType.TOUCH_MOVE, this._onTouchMoved, this, true);
         this.maskNode.on(Node.EventType.TOUCH_END, this._onTouchEnded, this, true);
@@ -127,61 +172,105 @@ export class PageViewBase extends Gossip {
         this.maskNode.off(Node.EventType.TOUCH_CANCEL, this._onTouchEnded, this, true);
     }
 
-    protected _checkContainerVisible(dir: E_UiPageView_Direction, container: ContainerPage, view: PageViewBase) {
-        const page = dir === E_UiPageView_Direction.Backward ? view.current - 1 : view.current + 1;
-        const valid = view.isPageValid(page);
-        if (!valid) return;
+    protected start() {
+        this.refreshMaskBox();
+        this._syncLocations();
+        this._checkContainersVisible();
+    }
 
-        let visible = view.maskBox.intersects(getWorldBoundindBoxOf(container.node, view.maskNode));
-        if (container.displayed !== visible) {
-            const event = visible ? E_Container_Event.ItemShow : E_Container_Event.ItemHide;
-            container.node.emit(event, view, view.current);
+    protected update() {
+        if (this._moved.isset() || this._scrolling.isset()) {
+            this._checkContainersVisible();
         }
     }
 
-    protected _getBoundary() {
-        const container = this._containers[1];
-        const box1 = getWorldBoundindBoxOf(container.node, this.maskNode);
+    /**
+     * 页码切换
+     */
+    protected _onPageChanged() {
+        this.node.emit(E_UiPageView_Event.PageChanged, this._current, this);
+    }
+
+    /**
+     * 同步虚拟容器位置
+     */
+    protected _syncLocations() {
+        const locations = [];
+        const { width, height } = this._maskBox;
+        this._containers.forEach((v, i) => {
+            const dir = i - 1;
+            const x = this.isHorizontal ? width * dir : 0;
+            const y = this.isVertical ? height * dir : 0;
+            v.node.setPosition(x, y);
+            locations.push(new Vec3(x, y));
+        });
+        this._locations = locations;
+    }
+
+    /**
+     * 检查容器可视
+     * @param dir 滚动方向
+     * @param container 容器
+     * @param view 视图
+     * @returns
+     */
+    protected _checkContainersVisible() {
+        this._containers.forEach((v, i) => {
+            const nextPage = this._getNextPage(i - 1);
+            const isValid = this.isPageValid(nextPage);
+            const visible = this.maskBox.intersects(getWorldBoundindBoxOf(v.node, this.maskNode));
+            if (v.displayed !== visible) {
+                isValid && visible ? this._showContainer(v, nextPage) : this._hideContainer(v, nextPage);
+            }
+        });
+    }
+
+    /**
+     * 当前虚拟容器
+     */
+    protected get _currentContainer() {
+        return this._containers[1];
+    }
+
+    /**
+     * 获取当前虚拟容器的边界
+     * @returns
+     */
+    protected _getBoundary(): I_Boundary {
+        const box1 = getWorldBoundindBoxOf(this._currentContainer.node, this.maskNode);
         const box2 = this._maskBox;
-        const ret = {
-            left: 0,
-            right: 0,
-            top: 0,
-            bottom: 0,
+        const ret: I_Boundary = {
+            left: box1.x - box2.x,
+            right: box2.x - box1.x,
+            top: box1.y - box2.y,
+            bottom: box2.y - box1.y,
             toString() {
                 return `left: ${this.left}, right: ${this.right}, top: ${this.top}, bottom: ${this.bottom}`;
             },
         };
-        ret.left = box1.x - box2.x;
-        ret.right = -ret.left;
-        ret.bottom = box1.y - box2.y;
-        ret.top = -ret.bottom;
         return ret;
     }
 
-    protected _clearLocMarks() {
-        this._locMarks.length = 0;
-    }
-
-    protected _addLocMark() {
-        this._locMarks.push(sys.now());
-    }
-
+    /**
+     * 触摸开始
+     * @param e 触摸事件
+     */
     protected _onTouchStart(e: EventTouch) {
-        this.stopScroll();
-
+        if (!this.isSlideEnabled) return;
         if (e.target === this.maskNode || this._scrolling.isset()) {
             e.propagationStopped = true;
         }
-
-        this._clearLocMarks();
-        this._addLocMark();
-        this._containers.forEach((v, i) => v.node.setPosition(this._locations[i].clone()));
-        // this.i(this._containers.map((v) => v.node.position.toString()));
+        this._locMarks.length = 0;
+        this._locMarks.push(sys.now());
+        this._reLocateContainers();
     }
 
+    /**
+     * 触摸移动
+     * @param e 触摸事件
+     */
     protected _onTouchMoved(e: EventTouch) {
-        if (this._scrolling.isset()) return;
+        if (!this.isSlideEnabled || this._scrolling.isset()) return;
 
         const delta = e.getDelta();
         const dir = this._getScrollDirByOffset(delta);
@@ -207,30 +296,42 @@ export class PageViewBase extends Gossip {
         }
     }
 
+    /**
+     * 触摸结束
+     * @param e 触摸事件
+     */
     protected _onTouchEnded(e: EventTouch) {
-        if (!this._scrolling.isset() && this._moved.isset()) {
-            this._addLocMark();
+        if (this.isSlideEnabled && !this._scrolling.isset() && this._moved.isset()) {
+            this._locMarks.push(sys.now());
             const ret = this._getScrollDirInfo(e);
-            this.i(`scrollable: ${ret.scrollable}, dir: ${ret.dir}, ${this._containers[1].node.name}`);
-            ret.scrollable ? this._scrollBywards(ret.dir) : this._checkBoundary(ret.dir);
+            // this.i(`scrollable: ${ret.scrollable}, dir: ${ret.dir}, ${this.currentContainer.node.name}`);
+            if (ret.scrollable && this.canAdvance(ret.dir)) {
+                return this.advance(ret.dir);
+            }
+            this._checkBoundaryBounce(ret.dir);
         }
     }
 
+    /**
+     * 根据偏移量获得滑动方向
+     * @param offset 偏移量
+     * @returns
+     */
     protected _getScrollDirByOffset(offset: Vec2) {
-        return this.isHorizontal
-            ? offset.x < 0
-                ? E_UiPageView_Direction.Forward
-                : E_UiPageView_Direction.Backward
-            : offset.y < 0
-            ? E_UiPageView_Direction.Backward
-            : E_UiPageView_Direction.Forward;
+        const isForwards = this.isHorizontal ? offset.x < 0 : offset.y > 0;
+        return isForwards ? E_UiPageView_Direction.Forward : E_UiPageView_Direction.Backward;
     }
 
-    protected _getScrollDirInfo(e: EventTouch): { scrollable: boolean; dir: E_UiPageView_Direction } {
+    /**
+     * 获取滑动方向信息
+     * @param e 触摸事件
+     * @returns
+     */
+    protected _getScrollDirInfo(e: EventTouch): I_SlideDirectionInfo {
         const offset = e.getUILocation().subtract(e.getUIStartLocation());
         const dir = this._getScrollDirByOffset(offset);
         const duration = this._locMarks.reduce((a, b) => b - a, 0) / 1000;
-        const ret = { scrollable: true, dir };
+        const ret: I_SlideDirectionInfo = { scrollable: true, dir };
         if (this._locMarks.length === 2) {
             if (duration <= this.duration) return ret;
             if (this.isHorizontal && Math.abs(offset.x) >= this.maxDistance) return ret;
@@ -240,33 +341,44 @@ export class PageViewBase extends Gossip {
         return ret;
     }
 
+    /**
+     * 移动偏移量
+     * @param offset 偏移量
+     */
     protected _moveBy(offset: Vec2) {
         const h_offset = this.isHorizontal ? offset.x : 0;
         const v_offset = this.isVertical ? offset.y : 0;
-        this.contentNode.children.forEach((v) => v.setPosition(v.position.add3f(h_offset, v_offset, 0)));
+        this._containers.forEach((v) => v.node.setPosition(v.node.position.add3f(h_offset, v_offset, 0)));
     }
 
+    /**
+     * 按滑动方向滚动指定偏移量
+     * @param dir 滑动方向
+     * @param offset 偏移量
+     */
     protected _scrollBy(dir: E_UiPageView_Direction, offset: Vec2) {
-        const containers =
-            dir === E_UiPageView_Direction.Backward ? this._containers.slice(0, 2) : this._containers.slice(1, 3);
-        this._scrolling.set();
-        containers.forEach((v) => {
-            Tween.stopAllByTarget(v.node);
-            const duration = (this.moveTime * Math.abs(this.isHorizontal ? offset.x : offset.y)) / this.maxDistance;
-            tween(v.node.position)
-                .by(duration, new Vec3(offset.x, offset.y, 0), {
-                    easing: "sineOut",
-                    onUpdate: () => {
-                        v.node.setPosition(v.node.position);
-                    },
-                    onComplete: () => {
-                        if (!this._scrolling.isset()) return;
-                        this._scrolling.unset();
-                        this._moved.unset();
-                    },
-                })
-                .start();
-        });
+        const isBackwards = dir === E_UiPageView_Direction.Backward;
+        const containers = this._containers.slice(...(isBackwards ? [0, 2] : [1, 3]));
+        const duration = (this.moveTime * Math.abs(this.isHorizontal ? offset.x : offset.y)) / this.maxDistance;
+        this._doScroll(containers, duration, offset);
+    }
+
+    /**
+     * 获取滑动后的页码
+     * @param dir 滑动方向
+     * @returns
+     */
+    protected _getNextPage(dir: E_UiPageView_Direction) {
+        const before = this._current;
+        let after = before + dir;
+        if (this.infinite) {
+            if (after === -1) {
+                after = this.pages - 1;
+            } else if (after === this.pages) {
+                after = 0;
+            }
+        }
+        return after;
     }
 
     /**
@@ -274,61 +386,77 @@ export class PageViewBase extends Gossip {
      * @param dir 翻页方向
      */
     protected _scrollBywards(dir: E_UiPageView_Direction) {
-        let page = 0;
-        if (dir === E_UiPageView_Direction.Backward) {
-            page = this._current - 1;
-        } else {
-            page = this._current + 1;
-        }
-
-        let boundary = this._getBoundary();
+        const isBackwards = dir === E_UiPageView_Direction.Backward;
+        const boundary = this._getBoundary();
+        const nextPage = this._getNextPage(dir);
+        const containers = this._containers.slice(...(isBackwards ? [0, 2] : [1, 3]));
         const offset = new Vec3();
         if (this.isHorizontal) {
-            offset.x =
-                dir === E_UiPageView_Direction.Backward
-                    ? this._maskBox.width - boundary.left
-                    : boundary.right - this._maskBox.width;
+            offset.x = isBackwards ? this._maskBox.width - boundary.left : boundary.right - this._maskBox.width;
         } else {
-            offset.y =
-                this._maskBox.height - (dir === E_UiPageView_Direction.Backward ? boundary.top : -boundary.bottom);
+            offset.y = this._maskBox.height - (isBackwards ? boundary.top : -boundary.bottom);
+        }
+        const duration = (this.moveTime * Math.abs(this.isHorizontal ? offset.x : offset.y)) / this.maxDistance;
+        const self = this;
+
+        function onComplete() {
+            if (isBackwards) {
+                self._containers.unshift(self._containers.pop());
+            } else {
+                self._containers.push(self._containers.shift());
+            }
+            self._current = nextPage;
+            self._onPageChanged();
+            self._reLocateContainers();
         }
 
+        this._doScroll(containers, duration, offset, onComplete);
+    }
+
+    /**
+     * 虚拟容器位置排版
+     */
+    protected _reLocateContainers() {
+        this._containers.forEach((v, i) => v.node.setPosition(this._locations[i].clone()));
+        // this.i(this._containers.map((v) => `${v.node.name}, ${v.node.position.toString()}`));
+    }
+
+    /**
+     * 执行滑动动作
+     * @param containers 容器数组
+     * @param duration 滑动事件
+     * @param offset 滑动偏移量
+     * @param onComplete 动画完成回调
+     */
+    protected _doScroll(containers: ContainerPage[], duration: number, offset: Vec2 | Vec3, onComplete?: Function) {
+        const newOffset = new Vec3(offset.x, offset.y);
+        const self = this;
         this._scrolling.set();
 
-        let onComplete = () => {
-            if (!this._scrolling.isset()) return;
-            this._scrolling.unset();
-            this._moved.unset();
-            if (dir === E_UiPageView_Direction.Backward) {
-                this._containers.unshift(this._containers.pop());
-            } else {
-                this._containers.push(this._containers.shift());
-            }
-            this._containers.forEach((v, i) => v.node.setPosition(this._locations[i].clone()));
-            this._current = page;
-            this.i(this._containers.map((v) => `${v.node.name}, ${v.node.position.toString()}`));
-        };
-
-        const containers =
-            dir === E_UiPageView_Direction.Backward ? this._containers.slice(0, 2) : this._containers.slice(1, 3);
+        function onFinished() {
+            if (!self._scrolling.isset()) return;
+            self._scrolling.unset();
+            self._moved.unset();
+            onComplete && onComplete();
+        }
 
         containers.forEach((v) => {
             Tween.stopAllByTarget(v.node);
-            const duration = (this.moveTime * Math.abs(this.isHorizontal ? offset.x : offset.y)) / this.maxDistance;
             tween(v.node.position)
-                .by(duration, new Vec3(offset.x, offset.y, 0), {
+                .by(duration, newOffset, {
                     easing: "sineOut",
-                    onUpdate: () => {
-                        // if (!this._scrolling.isset()) return;
-                        v.node.setPosition(v.node.position);
-                    },
+                    onUpdate: () => v.node.setPosition(v.node.position),
                 })
-                .call(onComplete)
+                .call(onFinished)
                 .start();
         });
     }
 
-    protected _checkBoundary(dir: E_UiPageView_Direction) {
+    /**
+     * 检查边界回弹
+     * @param dir 滑动方向
+     */
+    protected _checkBoundaryBounce(dir: E_UiPageView_Direction) {
         let boundary = this._getBoundary();
         if (this.isHorizontal) {
             this._scrollBy(dir, new Vec2(dir === E_UiPageView_Direction.Backward ? -boundary.left : boundary.right));
@@ -341,13 +469,17 @@ export class PageViewBase extends Gossip {
      * 页面进入
      * @param page 页面索引
      */
-    protected _onPageEnter(page: number) {}
+    protected _showContainer(container: ContainerPage, page: number) {
+        container.node.emit(E_Container_Event.ItemShow, this, page);
+    }
 
     /**
      * 页面退出
      * @param page 页面索引
      */
-    protected _onPageExit(page: number) {}
+    protected _hideContainer(container: ContainerPage, page: number) {
+        container.node.emit(E_Container_Event.ItemHide, this, page);
+    }
 
     // REGION ENDED <protected>
 
@@ -370,31 +502,38 @@ export class PageViewBase extends Gossip {
     }
 
     /**
-     * 停止滚动
+     * 是否支持滑动式翻页
      */
-    public stopScroll() {
-        Tween.stopAllByTarget(this.contentNode);
+    public get isSlideEnabled() {
+        return this.isBothMode || this.isSlideMode;
+    }
+
+    /**
+     * 是否支持触发式翻页
+     */
+    public get isTriggerEnabled() {
+        return this.isBothMode || this.isTriggerMode;
     }
 
     /**
      * 是否滑动式
      */
-    public get isSlide() {
-        return this.turnType === E_UiPageView_TurnType.Slide;
+    public get isSlideMode() {
+        return this.turnMode === E_UiPageView_TurnMode.Slide;
     }
 
     /**
      * 是否触发式
      */
-    public get isTrigger() {
-        return this.turnType === E_UiPageView_TurnType.Trigger;
+    public get isTriggerMode() {
+        return this.turnMode === E_UiPageView_TurnMode.Trigger;
     }
 
     /**
      * 是否双轨式
      */
-    public get isBoth() {
-        return this.turnType === E_UiPageView_TurnType.Both;
+    public get isBothMode() {
+        return this.turnMode === E_UiPageView_TurnMode.Both;
     }
 
     /**
@@ -404,7 +543,29 @@ export class PageViewBase extends Gossip {
      */
     public isPageValid(page: number) {
         page = page | 0;
-        return page >= 0 && page < this.total;
+        return page >= 0 && page < this.pageSize;
+    }
+
+    /**
+     * 按指定翻页方向是否可以成功翻页
+     * @param dir 翻页方向
+     * @returns
+     */
+    public canAdvance(dir: E_UiPageView_Direction) {
+        const before = this._current;
+        const after = this._getNextPage(dir);
+        return before !== after && (this.infinite || (!this.infinite && this.isPageValid(after)));
+    }
+
+    /**
+     * 按指定方向翻页
+     * @param dir 翻页方向
+     */
+    public advance(dir: E_UiPageView_Direction) {
+        if (this._scrolling.isset()) return;
+        const yes = this.canAdvance(dir);
+        yes && this._scrollBywards(dir);
+        return yes;
     }
 
     /**
@@ -412,9 +573,7 @@ export class PageViewBase extends Gossip {
      * - 保留动画
      */
     public backwards() {
-        if (this.isPageValid(this._current - 1)) {
-            this._scrollBywards(E_UiPageView_Direction.Backward);
-        }
+        this.advance(E_UiPageView_Direction.Backward);
     }
 
     /**
@@ -422,9 +581,7 @@ export class PageViewBase extends Gossip {
      * - 保留动画
      */
     public forwards() {
-        if (this.isPageValid(this._current - 1)) {
-            this._scrollBywards(E_UiPageView_Direction.Forward);
-        }
+        this.advance(E_UiPageView_Direction.Forward);
     }
 
     /**
@@ -434,9 +591,10 @@ export class PageViewBase extends Gossip {
      */
     public turnTo(page: number) {
         page = page | 0;
-        if (page >= 0 && page < this.total && this._current !== page) {
-            this._onPageEnter(page);
+        if (this.isPageValid(page) && this._current !== page) {
+            this._showContainer(this._currentContainer, page);
             this._current = page;
+            this._onPageChanged();
         }
     }
 
@@ -455,13 +613,6 @@ export class PageViewBase extends Gossip {
     }
 
     /**
-     * 获取页面总数
-     */
-    public get total() {
-        return this.pages;
-    }
-
-    /**
      * 遮罩矩形框
      */
     public get maskBox() {
@@ -473,8 +624,58 @@ export class PageViewBase extends Gossip {
         return box;
     }
 
+    /**
+     * 触发翻页的最大滑动距离
+     */
     public get maxDistance() {
         return (this.isHorizontal ? this._maskBox.width : this._maskBox.height) * this.distance;
+    }
+
+    /**
+     * 创建页面
+     * @returns
+     */
+    public createPage() {
+        return instantiate(this.template);
+    }
+
+    /**
+     * 设置页数
+     * @param pages 页数
+     * @returns
+     */
+    public set pageSize(pages: number) {
+        pages = Math.max(0, pages | 0);
+        if (pages === this.pages) return;
+
+        const before = this.pages;
+        this.pages = pages;
+        if (pages === 0) {
+            this._hideContainer(this._currentContainer, -1);
+            this._current = -1;
+        } else {
+            if (before === 0) {
+                this.turnTo(0);
+            } else if (pages < this._current + 1) {
+                this.turnTo(pages - 1);
+            }
+        }
+    }
+
+    /**
+     * 获取页数
+     */
+    public get pageSize() {
+        return this.pages;
+    }
+
+    /**
+     * 增加/减少页数
+     * @param offset 页数，正数为增加、负数为减少，默认增加一页
+     */
+    public addPage(offset: number = 1) {
+        const before = this.pageSize;
+        this.pageSize = before + (offset | 0);
     }
 
     // REGION ENDED <public>
