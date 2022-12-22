@@ -48,29 +48,29 @@ export function shuffle3(list: any[]) {
 
 /**
  * 从小到大排序
- * @param numberArr 数字数组
+ * @param list 数字数组
  * @returns
  */
-export function sortByAscending(numberArr: number[]) {
-    return numberArr.sort((a, b) => a - b);
+export function sortByAscending(list: number[]) {
+    return list.sort((a, b) => a - b);
 }
 
 /**
  * 从大到小排序
- * @param numberArr 数字数组
+ * @param list 数字数组
  * @returns
  */
-export function sortByDescending(numberArr: number[]) {
-    return numberArr.sort((a, b) => b - a);
+export function sortByDescending(list: number[]) {
+    return list.sort((a, b) => b - a);
 }
 
 /**
  * 数组去重
- * @param arr 原始数组
+ * @param list 原始数组
  * @returns
  */
-export function removeDuplicated(arr: any[]) {
-    return arr.filter(function (item, index, arr) {
+export function removeDuplicated(list: any[]) {
+    return list.filter(function (item, index, arr) {
         return arr.indexOf(item, 0) === index;
     });
 }
@@ -105,59 +105,77 @@ export function range(start: number, ended: number, step: number = 1) {
 
 /**
  * 累加
- * @param arr 数值数组
+ * @param list 数值数组
  * @returns
  */
-export function sumOf(arr: number[]) {
-    return arr.reduce((a, b) => a + b, 0);
+export function sumOf(list: number[]) {
+    return list.reduce((a, b) => a + b, 0);
 }
 
 /**
  * 乘积
- * @param arr 数值数组
+ * @param list 数值数组
  * @returns
  */
-export function productOf(arr: number[]) {
-    return arr.reduce((a, b) => a * b, 1);
+export function productOf(list: number[]) {
+    return list.reduce((a, b) => a * b, 1);
 }
 
 /**
- * 双向循环队列
+ * 截取第一个到指定个数的数组
+ * @param list 数组
+ * @param count 个数
  */
-export class LoopQueue<T> extends Array {
-    /**
-     * 前进一步
-     */
-    public forwards() {
-        this.length >= 1 && this.unshift(this.pop());
-    }
+export function pickFromHead(list: any[], count: number) {
+    return list.slice(0, count | 0);
+}
 
-    /**
-     * 后退一步
-     */
-    public backwards() {
-        this.length >= 1 && this.push(this.shift());
-    }
+/**
+ * 截取从最后一个到指定个数的数组
+ * @param list 数组
+ * @param count 个数
+ */
+export function pickToTail(list: any[], count: number) {
+    return list.slice((list.length - count) | 0, list.length);
+}
 
-    /**
-     * 截取第一个到指定个数的数组
-     */
-    public pickFromHead(count: number): T[] {
-        return this.slice(0, count | 0);
-    }
+/**
+ * 前进一步
+ * @param list 数组
+ */
+export function forward(list: any[]) {
+    list.length > 1 && list.unshift(list.pop());
+}
 
-    /**
-     * 截取从最后一个到指定个数的数组
-     */
-    public pickToTail(count: number): T[] {
-        return this.slice((this.length - count) | 0, this.length);
-    }
+/**
+ * 后退一步
+ * @param list 数组
+ */
+export function backward(list: any[]) {
+    list.length > 1 && list.push(list.shift());
+}
 
-    /**
-     * 转换为字符串
-     * @returns
-     */
-    public toString(): string {
-        return this.map((v) => v.toString()).join(",");
+/**
+ * 前进/后退 n 步
+ * @param list 数组
+ * @param step 步数
+ */
+export function advance(list: any[], step: number) {
+    step = step | 0;
+    if (step !== 0 && list.length > 1) {
+        if (step > 0) {
+            list.unshift(...list.splice(list.length - step, step));
+        } else {
+            list.push(...list.splice(0, step));
+        }
     }
+    return list;
+}
+
+/**
+ * 转换为字符串
+ * @returns
+ */
+export function asString(list: any[]) {
+    return list.length > 0 ? list.map((v) => v.toString()).join(",") : 0;
 }

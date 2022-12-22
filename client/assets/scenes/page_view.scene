@@ -1466,12 +1466,12 @@
       "__id__": 19
     },
     "turnMode": 2,
-    "turnDir": 0,
-    "pages": 3,
+    "turnDir": 1,
+    "pages": 5,
     "distance": 0.3,
     "duration": 0.15,
     "moveTime": 0.1,
-    "infinite": false,
+    "infinite": true,
     "_id": "ddJ0r6jSxOlrw8dXBYOGqr"
   },
   {

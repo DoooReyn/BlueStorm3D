@@ -200,7 +200,7 @@ export class PageViewBase extends Gossip {
         this._containers.forEach((v, i) => {
             const dir = i - 1;
             const x = this.isHorizontal ? width * dir : 0;
-            const y = this.isVertical ? height * dir : 0;
+            const y = this.isVertical ? height * -dir : 0;
             v.node.setPosition(x, y);
             locations.push(new Vec3(x, y));
         });
@@ -239,16 +239,16 @@ export class PageViewBase extends Gossip {
     protected _getBoundary(): I_Boundary {
         const box1 = getWorldBoundindBoxOf(this._currentContainer.node, this.maskNode);
         const box2 = this._maskBox;
-        const ret: I_Boundary = {
+        const boundary: I_Boundary = {
             left: box1.x - box2.x,
             right: box2.x - box1.x,
-            top: box1.y - box2.y,
-            bottom: box2.y - box1.y,
+            top: box2.y - box1.y,
+            bottom: box1.y - box2.y,
             toString() {
                 return `left: ${this.left}, right: ${this.right}, top: ${this.top}, bottom: ${this.bottom}`;
             },
         };
-        return ret;
+        return boundary;
     }
 
     /**
@@ -278,8 +278,7 @@ export class PageViewBase extends Gossip {
         if (this.isHorizontal) {
             if (dir === E_UiPageView_Direction.Backward && boundary.left >= this._maskBox.width) return;
             if (dir === E_UiPageView_Direction.Forward && boundary.left <= -this._maskBox.width) return;
-        }
-        if (this.isVertical) {
+        } else {
             if (dir === E_UiPageView_Direction.Backward && boundary.bottom >= this._maskBox.height) return;
             if (dir === E_UiPageView_Direction.Forward && boundary.bottom <= -this._maskBox.height) return;
         }
@@ -304,7 +303,7 @@ export class PageViewBase extends Gossip {
         if (this.isSlideEnabled && !this._scrolling.isset() && this._moved.isset()) {
             this._locMarks.push(sys.now());
             const ret = this._getScrollDirInfo(e);
-            // this.i(`scrollable: ${ret.scrollable}, dir: ${ret.dir}, ${this.currentContainer.node.name}`);
+            // this.i(`${this._currentContainer.node.name} => scrollable: ${ret.scrollable}, dir: ${ret.dir}`);
             if (ret.scrollable && this.canAdvance(ret.dir)) {
                 return this.advance(ret.dir);
             }
@@ -390,11 +389,12 @@ export class PageViewBase extends Gossip {
         const boundary = this._getBoundary();
         const nextPage = this._getNextPage(dir);
         const containers = this._containers.slice(...(isBackwards ? [0, 2] : [1, 3]));
+        const { width, height } = this._maskBox;
         const offset = new Vec3();
         if (this.isHorizontal) {
-            offset.x = isBackwards ? this._maskBox.width - boundary.left : boundary.right - this._maskBox.width;
+            offset.x = isBackwards ? width - boundary.left : boundary.right - width;
         } else {
-            offset.y = this._maskBox.height - (isBackwards ? boundary.top : -boundary.bottom);
+            offset.y = isBackwards ? boundary.top - height : height - boundary.bottom;
         }
         const duration = (this.moveTime * Math.abs(this.isHorizontal ? offset.x : offset.y)) / this.maxDistance;
         const self = this;
@@ -418,7 +418,6 @@ export class PageViewBase extends Gossip {
      */
     protected _reLocateContainers() {
         this._containers.forEach((v, i) => v.node.setPosition(this._locations[i].clone()));
-        // this.i(this._containers.map((v) => `${v.node.name}, ${v.node.position.toString()}`));
     }
 
     /**
@@ -461,7 +460,7 @@ export class PageViewBase extends Gossip {
         if (this.isHorizontal) {
             this._scrollBy(dir, new Vec2(dir === E_UiPageView_Direction.Backward ? -boundary.left : boundary.right));
         } else {
-            this._scrollBy(dir, new Vec2(0, dir === E_UiPageView_Direction.Backward ? -boundary.top : boundary.bottom));
+            this._scrollBy(dir, new Vec2(0, dir === E_UiPageView_Direction.Backward ? boundary.top : -boundary.bottom));
         }
     }
 
