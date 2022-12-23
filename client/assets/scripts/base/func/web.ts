@@ -8,7 +8,6 @@
 import { sys } from "cc";
 
 /**
- * @zh
  * 刷新当前页面
  */
 export function reloadWebPage() {
@@ -16,7 +15,6 @@ export function reloadWebPage() {
 }
 
 /**
- * @zh
  * 设置cookie
  * @param key cookie键名
  * @param value cookie键值
@@ -32,7 +30,6 @@ export function setCookie(key: string, value: string) {
 }
 
 /**
- * @zh
  * 获取cookie
  * @param key cookie键名
  * @returns cookie键值
@@ -102,8 +99,8 @@ export function getUrlParams() {
     const substrings = query.split("&"),
         params: { key: string; value: string }[] = [];
     for (let str of substrings) {
-        const [key, val] = str.split("=");
-        params.push({ key: key, value: val });
+        const [key, value] = str.split("=");
+        params.push({ key, value });
     }
     return params;
 }

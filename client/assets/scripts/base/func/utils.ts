@@ -5,7 +5,7 @@
  * Desc     : 辅助方法
  */
 
-import { Node } from "cc";
+import { Node, screen } from "cc";
 
 /**
  * @zh
@@ -121,4 +121,13 @@ export function getNodeUrl(node: Node) {
         node = node.parent;
     }
     return path.reverse().join("/");
+}
+
+/**
+ * 切换全屏
+ */
+export function switchFullscreen() {
+    if (screen.supportsFullScreen) {
+        screen.fullScreen() ? screen.exitFullScreen() : screen.requestFullScreen();
+    }
 }

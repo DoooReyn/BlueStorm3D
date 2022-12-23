@@ -21,6 +21,9 @@ export class EventBus extends SingletonBase {
     // 用于动画帧事件的事件对象
     public animation: EventTarget = new EventTarget();
 
+    // 用于框架内部的事件对象
+    public internal: EventTarget = new EventTarget();
+
     // 用于用户自定义的事件对象
     public user: EventTarget = new EventTarget();
 
