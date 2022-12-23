@@ -5,6 +5,11 @@
  * Desc     : 字符串辅助方法
  */
 
+const __UNREADABLE_LEVEL__ = 2;
+const __UNREADABLE_OFFSET__ = 16;
+const __UNREADABLE_RANGE_MIN__ = 766;
+const __UNREADABLE_RANGE_MAX__ = 879;
+
 /**
  * @zh
  * 字符串格式化
@@ -51,4 +56,75 @@ export function asJsonString(o: any) {
  */
 export function byteLength(s: string) {
     return encodeURI(s).split(/%..|./).length - 1;
+}
+
+/**
+ * 数字转千分位字符串
+ * @param num 数字
+ * @returns 千分位字符串
+ */
+export function toThousand(num: number) {
+    return Math.floor(num).toLocaleString("en");
+}
+
+/**
+ * 去除除空格外的空字符
+ * @param str 原始字符串
+ * @returns 修正后的字符串
+ */
+export function trimNullChars(str: string) {
+    return str.replace(/[\f\n\r\t\v\u1680\u180e\u2028\u2029\ufeff+]/g, "");
+}
+
+/**
+ * 是否完全的中文字符串
+ * @return 是否完全的中文字符串
+ */
+export function isChinese(str: string) {
+    return /^[\u4E00-\u9FA5]+$/.test(str);
+}
+
+/**
+ * 去除中文字符
+ * @return 返回去除中文字符后的字符串
+ */
+export function removeChinese(str: string) {
+    return str.replace(/[\u4E00-\u9FA5]+/gm, "");
+}
+
+/**
+ * 使字符串不可阅读
+ * @return 不可阅读的字符串
+ */
+export function unreadable(str: string) {
+    return Array.prototype.map
+        .call(str, function (char: string) {
+            let code1 = String.fromCharCode(char.charCodeAt(0) + __UNREADABLE_OFFSET__);
+            let code2 = new Array(__UNREADABLE_LEVEL__)
+                .fill(0)
+                .map(function () {
+                    let min = __UNREADABLE_RANGE_MIN__;
+                    let max = __UNREADABLE_RANGE_MAX__;
+                    let code = Math.floor(Math.random() * (max - min + 1) + min);
+                    return String.fromCharCode(code);
+                })
+                .join("");
+            return code1 + code2;
+        })
+        .join("");
+}
+
+/**
+ * 恢复不可阅读的字符串
+ */
+export function readable(str: string) {
+    return Array.prototype.map
+        .call(str, function (char: string, index: number) {
+            let out = index % (__UNREADABLE_LEVEL__ + 1) === 0;
+            if (!out) {
+                return "";
+            }
+            return String.fromCharCode(char.charCodeAt(0) - __UNREADABLE_OFFSET__);
+        })
+        .join("");
 }
