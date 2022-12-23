@@ -41,9 +41,7 @@ export function shuffle2(list: any[]): any[] {
  * @param list 目标数组
  */
 export function shuffle3(list: any[]) {
-    return list.sort((a, b) => {
-        return Math.random() - 0.5;
-    });
+    return list.sort(() => Math.random() - 0.5);
 }
 
 /**
@@ -178,4 +176,67 @@ export function advance(list: any[], step: number) {
  */
 export function asString(list: any[]) {
     return list.length > 0 ? list.map((v) => v.toString()).join(",") : 0;
+}
+
+/**
+ * 数组合并
+ * @param arrays 数组列表
+ * @returns
+ */
+export function zip(...arrays: any[]): any[] {
+    return Array.apply(null, Array(arrays[0].length)).map(function (_: any, i: number) {
+        return arrays.map(function (array) {
+            return array[i];
+        });
+    });
+}
+
+/**
+ * 数组扁平化
+ * @param array 目标数组
+ */
+export function flatten(array: any[]) {
+    while (array.some((v) => Array.isArray(v))) {
+        array = [].concat.apply([], array);
+    }
+    return array;
+}
+
+/**
+ * 合并数组
+ * @param array1 目标数组1
+ * @param array2 目标数组2
+ */
+export function combine(array1: any[], array2: any[]): any[] {
+    return [...array1, ...array2];
+}
+
+/**
+ * 随机获取数组索引
+ * @param array 目标数组
+ */
+export function pickIndexFrom(array: any[]): number | undefined {
+    if (array.length > 0) {
+        return (Math.random() * array.length) | 0;
+    }
+}
+
+/**
+ * 随机获取数组成员
+ * @param array 目标数组
+ */
+export function pickElementFrom(array: any[]): any {
+    const size = array.length;
+    if (size === 0) return undefined;
+    else if (size === 1) return array[0];
+    return array[pickIndexFrom(array)];
+}
+
+/**
+ * 随机获取数组成员
+ * @param array 目标数组
+ */
+export function pickElementsFrom(array: any[], count: number): any[] {
+    count = Math.min(array.length, Math.max(1, count | 0));
+    return shuffle1(array.slice()).slice(0, count);
 }

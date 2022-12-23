@@ -65,3 +65,11 @@ export function randomInteger(min: number, max: number) {
 export function randomFloat(min: number, max: number) {
     return Math.random() * (max - min) + min;
 }
+
+/**
+ * 获取随机布尔值
+ * @returns
+ */
+export function randomBoolean() {
+    return Math.random() - 0.5 >= 0;
+}
