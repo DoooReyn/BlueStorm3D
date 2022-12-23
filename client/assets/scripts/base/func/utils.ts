@@ -5,6 +5,8 @@
  * Desc     : 辅助方法
  */
 
+import { Node } from "cc";
+
 /**
  * @zh
  * 一般方法回调处理类型定义
@@ -80,15 +82,43 @@ export function isObject(args: any) {
 
 /**
  * 深度拷贝
- * @param obj 值
+ * @param target 目标
  * @returns
  */
-export function deepClone<T>(obj: T): T {
-    if (!isObject(obj)) return obj;
+export function deepClone<T>(target: T): T {
+    if (!isObject(target)) return target;
 
-    let newObj = Array.isArray(obj) ? [...obj] : { ...obj };
+    let newObj = Array.isArray(target) ? [...target] : { ...target };
     Reflect.ownKeys(newObj as any).map((key) => {
-        newObj[key] = isObject(obj[key]) ? deepClone(obj[key]) : obj[key];
+        newObj[key] = isObject(target[key]) ? deepClone(target[key]) : target[key];
     });
+
     return newObj as T;
+}
+
+/**
+ * 同步原始对象的key到目标对象上
+ * @param target 目标对象
+ * @param raw 原始对象
+ */
+export function sync(target: object, raw: object) {
+    for (let key in raw) {
+        if (target[key] === undefined) {
+            target[key] = deepClone(raw[key]);
+        }
+    }
+}
+
+/**
+ * 获取节点在场景树中的树路径
+ * @param node 节点
+ * @return 节点路径
+ */
+export function getNodeUrl(node: Node) {
+    let path: string[] = [];
+    while (node.parent) {
+        path.push(node.name);
+        node = node.parent;
+    }
+    return path.reverse().join("/");
 }

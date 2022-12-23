@@ -146,3 +146,38 @@ export function isValidURL(str: string) {
     );
     return !!pattern.test(str);
 }
+
+/**
+ * 字符串补位
+ * @param isStart 前置或后置补位
+ * @returns
+ */
+function padding(isStart: boolean) {
+    function doPadding(str: string, template: string, len: number) {
+        const diff_len = (len | 0) - str.length;
+        if (diff_len <= 0) return str;
+        const count = Math.ceil(diff_len / template.length);
+        const filled = template.repeat(count).slice(0, diff_len);
+        str = isStart ? filled + str : str + filled;
+        return str;
+    }
+    return doPadding;
+}
+
+/**
+ * 字符串前置补位
+ * @param str 原始字符串
+ * @param template 补位字符串模板
+ * @param len 补位后字符串长度
+ * @returns
+ */
+export const padStart = padding(true);
+
+/**
+ * 字符串后置补位
+ * @param str 原始字符串
+ * @param template 补位字符串模板
+ * @param len 补位后字符串长度
+ * @returns
+ */
+export const padEnd = padding(false);
