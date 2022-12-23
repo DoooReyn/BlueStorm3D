@@ -1,4 +1,4 @@
-import { _decorator, Node, Label } from "cc";
+import { _decorator, Node, Label, Enum } from "cc";
 import { disableDomErrorNode } from "../../base/func/utils";
 import { Gossip } from "../../base/ui/add_ons/gossip";
 import { ScrollBothView } from "../../base/ui/add_ons/view/scroll_both_view";

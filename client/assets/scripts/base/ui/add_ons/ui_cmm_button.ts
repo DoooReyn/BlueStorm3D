@@ -1,6 +1,6 @@
 import { _decorator, Button, macro, EventHandler } from "cc";
-import { AudioMap } from "../../audio/audio_map";
-import { AudioInfo, I_AudioInfo } from "../../res/res_info";
+import { AudioMap, E_AudioMap, T_AudioMap } from "../../audio/audio_map";
+import { AudioInfo } from "../../res/res_info";
 import { Singletons } from "../../singletons";
 import { E_UiButtonEvent, E_UiButtonState, UiHackableButton } from "./ui_button_hack";
 const { ccclass, property, disallowMultiple, menu, executeInEditMode } = _decorator;
@@ -39,12 +39,13 @@ export class UiCmmButton extends Button {
     @property({ displayName: "长按触发事件回调", type: [EventHandler] })
     longPressTriggerEvents: EventHandler[] = [];
 
+    @property({ displayName: "点击音效", type: E_AudioMap })
+    audio = E_AudioMap.click;
+
     /**
      * 长按是否生效
      */
     private _isLongPressed: boolean = false;
-
-    private _audio: AudioInfo = AudioMap.click;
 
     // REGION ENDED <Member Variables>
 
@@ -160,16 +161,22 @@ export class UiCmmButton extends Button {
      * @param audio 音频信息
      */
     public playAudio(audio?: AudioInfo) {
-        audio && this.setAudioInfo(audio);
-        this.audioEnabled && Singletons.audio.play(this._audio);
+        this.audioEnabled && Singletons.audio.play(audio || this.getAudioInfo());
     }
 
     /**
-     * 设置音频信息
+     * 获取当前音频信息
+     */
+    public getAudioInfo() {
+        return AudioMap[E_AudioMap[this.audio]];
+    }
+
+    /**
+     * 设置当前音频信息
      * @param audio 音频信息
      */
-    public setAudioInfo(audio: AudioInfo) {
-        this._audio = audio;
+    public setAudioInfo(audio: T_AudioMap) {
+        this.audio = E_AudioMap[audio];
     }
 
     /**
@@ -177,9 +184,8 @@ export class UiCmmButton extends Button {
      * @param e 开启
      */
     public setStateChangedEnabled(e: boolean) {
-        e
-            ? this.node.on(E_UiButtonEvent.STATE_CHANGED, this.onStateChanged, this)
-            : this.node.off(E_UiButtonEvent.STATE_CHANGED, this.onStateChanged, this);
+        const event = E_UiButtonEvent.STATE_CHANGED;
+        e ? this.node.on(event, this.onStateChanged, this) : this.node.off(event, this.onStateChanged, this);
     }
 
     /**
@@ -187,9 +193,8 @@ export class UiCmmButton extends Button {
      * @param e 开启
      */
     public setClickedOnceEnabled(e: boolean) {
-        e
-            ? this.node.on(E_UiButtonEvent.CLICK, this.onClickedOnce, this)
-            : this.node.off(E_UiButtonEvent.CLICK, this.onClickedOnce, this);
+        const event = E_UiButtonEvent.CLICK;
+        e ? this.node.on(event, this.onClickedOnce, this) : this.node.off(event, this.onClickedOnce, this);
     }
 
     // REGION ENDED <public>

@@ -5,7 +5,7 @@
  * Desc     : 辅助方法
  */
 
-import { Node, screen } from "cc";
+import { Enum, Node, screen } from "cc";
 
 /**
  * @zh
@@ -130,4 +130,15 @@ export function switchFullscreen() {
     if (screen.supportsFullScreen) {
         screen.fullScreen() ? screen.exitFullScreen() : screen.requestFullScreen();
     }
+}
+
+/**
+ * 将对象的键转换为 Enum
+ * @param obj 对象
+ * @returns
+ */
+export function pickKeyAsEnum(obj: object): { [key: string]: number } {
+    let ret = {};
+    Object.keys(obj).forEach((v, i) => (ret[v] = i));
+    return Enum(ret);
 }
