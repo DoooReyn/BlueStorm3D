@@ -1,5 +1,5 @@
 /**
- * Url      : db://assets/scripts/base/ui/ui_base.ts
+ * Url      : db://assets/scripts/base/func/automatic_value.ts
  * Author   : reyn
  * Date     : Tue Dec 06 2022 14:35:21 GMT+0800 (中国标准时间)
  * Class    : AutomaticValue
@@ -38,16 +38,35 @@ export class AutomaticValue<T extends string | number | boolean> {
     protected _onValueChanged(prev: T, current: T) {}
 }
 
+/**
+ * 自维护的布尔值
+ */
 export class AutomaticBooleanValue extends AutomaticValue<boolean> {
+    /**
+     * 置为真
+     */
     public set() {
         this.value = true;
     }
 
+    /**
+     * 置为假
+     */
     public unset() {
         this.value = false;
     }
 
+    /**
+     * 是否为真
+     */
     public isset() {
         return this.value;
+    }
+
+    /**
+     * 是否为假
+     */
+    public notset() {
+        return !this.value;
     }
 }

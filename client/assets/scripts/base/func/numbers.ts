@@ -1,5 +1,5 @@
 /**
- * Url      : db://assets/scripts/base/func/utils.ts
+ * Url      : db://assets/scripts/base/func/numbers.ts
  * Author   : reyn
  * Date     : Thu Dec 01 2022 20:32:07 GMT+0800 (中国标准时间)
  * Desc     : 数值辅助方法
