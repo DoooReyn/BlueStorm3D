@@ -14,17 +14,19 @@ export enum E_Numeric_Operator {
     Sub,
     Mul,
     Div,
-    Mod
+    Mod,
 }
 
 /**
  * 自维护的数值
  */
 export abstract class AutomaticNumberValue extends AutomaticValue<number> {
+    public set value(v: number) {
+        super.value = this.trim(v);
+    }
 
-    public constructor(v: number) {
-        super(v);
-        this.trim(v);
+    public get value() {
+        return super.value;
     }
 
     /**
@@ -97,7 +99,7 @@ export abstract class AutomaticNumberValue extends AutomaticValue<number> {
                 break;
         }
 
-        return this.value = this.trim(v);
+        return (this.value = this.trim(v));
     }
 
     /**
@@ -140,8 +142,8 @@ export class AutomaticRangeValue extends AutomaticNumberValue {
      */
     private _max: AutomaticNumericValue = new AutomaticNumericValue(0);
 
-    public constructor(value: number, min: number, max: number) {
-        super(value);
+    public constructor(v: number, min: number, max: number) {
+        super(v);
         this.setRange(min, max);
     }
 

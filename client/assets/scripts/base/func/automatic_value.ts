@@ -6,7 +6,7 @@
  * Desc     : 自维护的原始值
  */
 export class AutomaticValue<T extends string | number | boolean> {
-    private _value: T;
+    protected _value: T;
 
     public constructor(v: T) {
         this._value = v;
