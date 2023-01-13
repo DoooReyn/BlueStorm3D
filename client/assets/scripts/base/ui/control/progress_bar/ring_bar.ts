@@ -4,6 +4,13 @@ import { ProgressBar } from "./progress_bar";
 
 const { ccclass, property } = _decorator;
 
+/**
+ * Url      : db://assets/scripts/base/control/ring_bar.ts
+ * Author   : reyn
+ * Date     : Tue Dec 06 2022 14:35:21 GMT+0800 (中国标准时间)
+ * Class    : RingBar
+ * Desc     : 环形进度条
+ */
 @ccclass("ring_bar")
 export class RingBar extends ProgressBar {
     @property({ displayName: "起始角度", range: [0, 1, 0.1] })
@@ -12,7 +19,7 @@ export class RingBar extends ProgressBar {
     /**
      * 起始角度
      */
-    private _rangeStart: AutomaticRangeValue = new AutomaticRangeValue(0, 0, 1);
+    protected _rangeStart: AutomaticRangeValue = new AutomaticRangeValue(0, 0, 1);
 
     protected onLoad() {
         super.onLoad();
@@ -23,7 +30,7 @@ export class RingBar extends ProgressBar {
         const g = this.graphic_;
         g.clear();
 
-        const start_angle = this._rangeStart.value * Math.PI * 2;
+        const start_angle = this.rangeStart * Math.PI * 2;
 
         const r = this.transform_.width * 0.5;
         if (this.range <= 0) {

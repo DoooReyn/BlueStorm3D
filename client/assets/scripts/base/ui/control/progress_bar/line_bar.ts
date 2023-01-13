@@ -8,6 +8,13 @@ enum E_LineBar_Layout {
     Vertical,
 }
 
+/**
+ * Url      : db://assets/scripts/base/control/line_bar.ts
+ * Author   : reyn
+ * Date     : Tue Dec 06 2022 14:35:21 GMT+0800 (中国标准时间)
+ * Class    : LineBar
+ * Desc     : 条形进度条
+ */
 @ccclass("line-bar")
 export class LineBar extends ProgressBar {
     @property({ displayName: "布局方式", type: Enum(E_LineBar_Layout) })

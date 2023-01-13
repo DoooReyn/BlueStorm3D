@@ -61,14 +61,6 @@ export abstract class ProgressBar extends Gossip {
      */
     private _range: AutomaticRangeValue = new AutomaticRangeValue(0, 0, 1);
 
-    /**
-     * 前景尺寸变化事件回调
-     */
-    private _onSizeChanged() {
-        this.mask_.getComponent(UITransform).setContentSize(this.transform_.contentSize);
-        this._onRangeChanged();
-    }
-
     protected onEnable() {
         this.foreground.node.on(Node.EventType.SIZE_CHANGED, this._onSizeChanged, this);
     }
@@ -85,6 +77,14 @@ export abstract class ProgressBar extends Gossip {
         this.graphic_.fillColor.fromHEX("#ffffff");
         this.graphic_.clear();
         this.range = 0;
+    }
+
+    /**
+     * 前景尺寸变化事件回调
+     */
+    protected _onSizeChanged() {
+        this.mask_.getComponent(UITransform).setContentSize(this.transform_.contentSize);
+        this._onRangeChanged();
     }
 
     /**
