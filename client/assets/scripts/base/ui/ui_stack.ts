@@ -1,5 +1,5 @@
 import { _decorator, Component, Prefab } from "cc";
-import { I_UiInfo, UiInfo } from "../res/res_info";
+import { I_UiInfo, ResInfo, UiInfo } from "../res/res_info";
 import { Singletons } from "../singletons";
 import { Gossip } from "./add_ons/gossip";
 import { setupDefaultBundle } from "./add_ons/ui_helper";
@@ -200,7 +200,7 @@ export abstract class UiStack extends Gossip {
      * @param args 参数列表
      */
     public async open<T extends UiBase>(info: I_UiInfo | UiInfo, ...args: any[]): Promise<T | null> {
-        if (info instanceof UiInfo) info = info.raw;
+        if (info instanceof ResInfo) info = info.raw;
 
         setupDefaultBundle(info);
         let uiIndex = this.seekUiIndexByUiInfo(info);
@@ -217,6 +217,7 @@ export abstract class UiStack extends Gossip {
         }
 
         this.onShowLoading();
+
         let prefab = await Singletons.drm.load<Prefab>(info, Prefab);
         if (!prefab) {
             this.e(`打开Ui失败,无法加载资源: ${info.bundle}/${info.path}`);
@@ -260,7 +261,7 @@ export abstract class UiStack extends Gossip {
      * @param args 参数列表
      */
     public close(info: I_UiInfo | UiInfo, ...args: any[]) {
-        if (info instanceof UiInfo) info = info.raw;
+        if (info instanceof ResInfo) info = info.raw;
         setupDefaultBundle(info);
         let uiIndex = this.seekUiIndexByUiInfo(info);
         if (uiIndex > -1) {
